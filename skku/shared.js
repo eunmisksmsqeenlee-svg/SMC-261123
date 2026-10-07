@@ -1,5 +1,5 @@
 // 세 화면이 같이 쓰는 도구 (고칠 필요 없어요)
-import { EVENT } from "./config.js?v=20261007n";
+import { EVENT } from "./config.js?v=20261007r";
 
 export const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
 
@@ -119,4 +119,23 @@ export function authErrorText(e) {
     "auth/popup-blocked": "팝업이 막혔어요. 주소창 오른쪽에서 팝업을 허용하고 다시 눌러 주세요.",
     "auth/popup-closed-by-user": "로그인 창이 닫혔어요. 다시 눌러 주세요."
   }[code] || "로그인하지 못했어요. 잠시 후 다시 시도해 주세요.";
+}
+
+// 종류 순서 번호 (색 구분용, 없으면 -1)
+export function kindIndex(kind) {
+  return KINDS.indexOf(kind);
+}
+
+// config.js에 적힌 로고 파일을 흰 상자에 넣어 보여줘요. 파일이 없으면 상자를 숨겨요
+export function applyLogos(root = document) {
+  root.querySelectorAll("img[data-logo]").forEach((img) => {
+    const box = img.closest(".logo-box") || img;
+    const file = String(EVENT[img.dataset.logo] || "").trim();
+    box.hidden = true;
+    if (!file) return;
+    img.alt = String(EVENT[img.dataset.logo + "Alt"] || "");
+    img.addEventListener("load", () => { box.hidden = false; }, { once: true });
+    img.addEventListener("error", () => { box.hidden = true; }, { once: true });
+    img.src = file;
+  });
 }

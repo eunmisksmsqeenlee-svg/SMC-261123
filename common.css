@@ -135,6 +135,23 @@ body[data-notice="wine"]{--nb:var(--notice-wine);--nt:#ffffff;--ghost:rgba(255,2
 }
 .theme-smc .kind-tag{background:var(--samsung-blue);color:#ffffff}
 
+/* 종류별 파스텔 색 (순서대로: 응원 한마디 / 바라는 점 / 궁금한 점)
+   바탕은 연하게, 글자는 같은 계열의 진한 색, 테두리는 그 중간 */
+:root{
+  --kind-0:#d6e0ff;--kind-0-ink:#2a4597;--kind-0-line:#9db2ef; /* 하늘빛 파랑 */
+  --kind-1:#cdeedd;--kind-1-ink:#21664a;--kind-1-line:#86cfaa; /* 민트 */
+  --kind-2:#e6dcfb;--kind-2-ink:#5b3f9e;--kind-2-line:#b7a1e6; /* 라벤더 */
+}
+.kind-tag.k0{background:var(--kind-0);color:var(--kind-0-ink);box-shadow:inset 0 0 0 1px var(--kind-0-line)}
+.kind-tag.k1{background:var(--kind-1);color:var(--kind-1-ink);box-shadow:inset 0 0 0 1px var(--kind-1-line)}
+.kind-tag.k2{background:var(--kind-2);color:var(--kind-2-ink);box-shadow:inset 0 0 0 1px var(--kind-2-line)}
+
+/* 행사명 배지 옆 로고 (흰 바탕) */
+.brand-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:.5em}
+.brand-row .eyebrow{margin:0;display:inline-flex;align-items:center}
+.logo-box{display:inline-flex;align-items:center;background:#ffffff;border-radius:6px;padding:.3em .65em}
+.logo-box img{display:block;height:1.6em;width:auto;max-width:12em;object-fit:contain}
+
 @media (prefers-reduced-motion:reduce){
   .toast{animation:none}
 }

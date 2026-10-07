@@ -25,6 +25,9 @@ export const EVENT = {
   placeholder: "한 해 동안 고마웠던 사람에게, 하고 싶은 말을 남겨주세요",
   emptyWall: "첫 메시지를 기다리고 있어요",
   footnote: "메시지는 행사 화면에 공개돼요. 서로 기분 좋은 말만 남겨 주세요.",
+  staffName: "운영진",  // 운영진 글쓰기 이름 기본값 (12자까지)
+  logo: "",             // 행사명 옆 로고 이미지 파일 이름 (예: "logo.png", 비우면 안 보여요)
+  bottomLogo: "",       // 대형 화면 오른쪽 아래 로고 이미지 파일 이름
 
   lifetimeSeconds: 120, // 메시지가 화면에 머무는 시간(초)
   maxLength: 80,        // 메시지 최대 글자 수 (최대 200)

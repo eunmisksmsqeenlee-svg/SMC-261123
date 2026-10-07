@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css?v=20261007n">
+<link rel="stylesheet" href="common.css?v=20261007r">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 /* 대형 화면: 왼쪽 위 제목, 오른쪽 위 QR, 쪽지는 아래에서 떠올라 가운데에서 떠다녀요 */
@@ -32,9 +32,21 @@ body.idle,body.idle *{cursor:none}
   position:absolute;z-index:3;
   top:calc(env(safe-area-inset-top,0px) + var(--gutter));right:var(--gutter);
   display:grid;justify-items:center;gap:clamp(6px,.5vw,10px);
-  padding:clamp(8px,.8vw,14px);background:var(--paper);border-radius:10px;
+  padding:clamp(8px,.8vw,14px);background:#ffffff;border-radius:10px;
   box-shadow:0 0 0 1px var(--line),0 12px 40px var(--shadow),0 0 60px var(--halo);
+  transition:opacity .6s ease,visibility .6s;
 }
+.masthead .brand-row{font-size:clamp(11px,.85vw,15px)}
+.theme-smc .masthead .brand-row{font-size:clamp(13px,1.15vw,22px)}
+
+/* 오른쪽 아래 슬로건 로고 */
+.corner-logo{
+  position:absolute;z-index:3;right:var(--gutter);
+  bottom:calc(env(safe-area-inset-bottom,0px) + clamp(40px,3.6vw,64px));
+  font-size:clamp(14px,1.5vw,28px);padding:.45em .8em;border-radius:10px;
+  box-shadow:0 0 0 1px var(--line),0 10px 30px var(--shadow);
+}
+.corner-logo img{height:1.9em;max-width:11em}
 .qr canvas{display:block;width:var(--qr-w,clamp(80px,9vw,170px));height:auto;aspect-ratio:1;max-width:100%}
 .qr span{font:600 var(--qr-label,clamp(10px,.8vw,15px))/1.2 var(--f-ui);color:var(--ink);letter-spacing:.04em}
 .qr .qr-fallback{max-width:var(--qr-w,clamp(80px,9vw,170px));font:500 11px/1.4 var(--f-ui);color:var(--ink);word-break:break-all;text-align:center}
@@ -42,12 +54,18 @@ body.idle,body.idle *{cursor:none}
 /* QR 크게 보기 */
 .bigqr{position:fixed;inset:0;z-index:7;display:grid;place-items:center;align-content:center;gap:clamp(12px,2vh,28px);padding:24px;background:var(--sky-bg);text-align:center;cursor:pointer}
 .bigqr .eyebrow{font-size:clamp(14px,1.4vw,26px);justify-self:center}
-.theme-smc .masthead .eyebrow{font-size:clamp(13px,1.15vw,22px)}
 .bigqr h2{margin:0;font:700 clamp(26px,3.4vw,60px)/1.15 var(--f-display);color:var(--paper);text-wrap:balance}
-.bigqr .frame{background:var(--paper);border-radius:18px;padding:clamp(12px,1.6vh,24px);box-shadow:0 0 0 1px var(--line),0 20px 60px var(--shadow),0 0 90px var(--halo)}
+.bigqr .frame{background:#ffffff;border-radius:18px;padding:clamp(12px,1.6vh,24px);box-shadow:0 0 0 1px var(--line),0 20px 60px var(--shadow),0 0 90px var(--halo)}
 .bigqr canvas{display:block;width:min(56vh,70vw);height:auto;aspect-ratio:1}
 .bigqr p{margin:0;font:500 clamp(15px,1.5vw,28px)/1.4 var(--f-ui);color:var(--mist)}
 
+.wall-note{
+  position:absolute;z-index:3;left:50%;transform:translateX(-50%);
+  bottom:calc(env(safe-area-inset-bottom,0px) + clamp(40px,3.6vw,64px));
+  width:min(1100px,calc(100% - 2 * var(--gutter)));margin:0;pointer-events:none;
+  text-align:center;font:500 clamp(11px,.82vw,15px)/1.6 var(--f-ui);color:var(--mist);word-break:keep-all;white-space:pre-line;
+  transition:color .8s ease,opacity .8s ease;
+}
 .foot{
   position:absolute;left:0;right:0;bottom:0;z-index:3;
   display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;
@@ -100,9 +118,13 @@ body.idle,body.idle *{cursor:none}
 body.has-notice .notice-bg{opacity:1}
 body.has-notice .notice{opacity:1;transform:none}
 body.has-notice .masthead,body.has-notice .empty{opacity:0}
+body.has-notice .qr{opacity:0;visibility:hidden}
+.q-mark{color:var(--glow);margin-right:.32em}
+body[data-notice="amber"] .q-mark,body[data-notice="cream"] .q-mark{color:var(--samsung-blue)}
 .masthead,.empty{transition:opacity .6s ease}
 body.has-notice .foot,body.has-notice .foot b{color:var(--nt,#fff)}
 body.has-notice .foot{opacity:.75}
+body.has-notice .wall-note{color:var(--nt,#fff);opacity:.7}
 body.has-notice .conn i{background:currentColor}
 /* 공지가 떠 있는 동안 다른 쪽지는 테두리 없이 투명하게 */
 body.has-notice .card .note{background:transparent;box-shadow:none;color:var(--ghost)}
@@ -129,6 +151,7 @@ body.has-notice .card .note.fresh{animation:none}
 }
 .ctrl .hint{font:500 12px/1.3 var(--f-ui);color:var(--mist);padding:0 6px}
 body.idle .ctrl{opacity:0;pointer-events:none}
+body.fs .ctrl{display:none}
 
 .ov-pw{display:flex;gap:8px}
 .ov-pw input{flex:1;min-width:0;background:var(--field);color:var(--ink);border:1px solid var(--field-line);border-radius:9px;padding:10px 12px;font:400 16px/1.2 var(--f-ui)}
@@ -155,7 +178,10 @@ body.idle .ctrl{opacity:0;pointer-events:none}
   <canvas id="sky" aria-hidden="true"></canvas>
 
   <header class="masthead">
-    <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
+    <div class="brand-row">
+      <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
+      <span class="logo-box" hidden><img data-logo="logo" alt=""></span>
+    </div>
     <h1 class="title" data-text="title">올해의 한마디</h1>
     <p class="sub" data-text="wallSubtitle">QR을 찍고 메시지를 보내면 이 화면에 떠올라요</p>
   </header>
@@ -170,11 +196,13 @@ body.idle .ctrl{opacity:0;pointer-events:none}
   <div class="layer" id="layer" aria-label="메시지 월"></div>
   <div class="notice" id="notice" role="status" aria-live="polite" hidden>
     <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
-    <p class="notice-text" id="notice-text"></p>
+    <p class="notice-text" id="notice-text"><span class="q-mark" id="notice-q" hidden>Q.</span><span id="notice-body"></span></p>
   </div>
 
+  <p class="wall-note" id="wall-note" hidden></p>
+  <div class="corner-logo logo-box" id="corner-logo" hidden><img data-logo="bottomLogo" alt=""></div>
   <footer class="foot">
-    <span><span class="conn" id="conn" data-state="wait"><i></i><span id="conn-text">연결 중…</span></span> · 지금 화면에 <b id="count-now">0</b>개 · 지금까지 <b id="count-total">0</b>개</span>
+    <span><span class="conn" id="conn" data-state="wait"><i></i><span id="conn-text">연결 중…</span></span> · 화면 송출 메시지 <b id="count-now">0</b>개 · 누적 메시지 <b id="count-total">0</b>개</span>
     <span id="foot-life">메시지는 2분 동안 머물러요</span>
   </footer>
 </main>
@@ -215,9 +243,9 @@ body.idle .ctrl{opacity:0;pointer-events:none}
   }, 12000);
 </script>
 <script type="module">
-import { EVENT } from "./config.js?v=20261007n";
-import { configured, app, db, SDK, collection, query, where, orderBy, limit, onSnapshot, getCountFromServer } from "./firebase.js?v=20261007n";
-import { applyText, applyTheme, fill, participantUrl, drawQR, makeToast, COL, SHOW_MAX, NOTICE_COLORS, OPERATOR_EMAIL, authErrorText } from "./shared.js?v=20261007n";
+import { EVENT } from "./config.js?v=20261007r";
+import { configured, app, db, SDK, collection, query, where, orderBy, limit, onSnapshot, getCountFromServer } from "./firebase.js?v=20261007r";
+import { applyText, applyTheme, applyLogos, fill, participantUrl, drawQR, makeToast, COL, SHOW_MAX, NOTICE_COLORS, OPERATOR_EMAIL, authErrorText, kindIndex } from "./shared.js?v=20261007r";
 
 window.__wallReady = true;
 applyTheme();
@@ -237,7 +265,12 @@ const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 const toast = makeToast($("toast"));
 const rand = (a, b) => a + Math.random() * (b - a);
 
-$("foot-life").textContent = fill("메시지는 {시간} 동안 머물러요");
+applyLogos();
+$("foot-life").textContent = fill(typeof EVENT.wallFootRight === "string" && EVENT.wallFootRight.trim() ? EVENT.wallFootRight : "메시지는 {시간} 동안 머물러요");
+if (typeof EVENT.wallNote === "string" && EVENT.wallNote.trim()) {
+  $("wall-note").textContent = EVENT.wallNote.trim();
+  $("wall-note").hidden = false;
+}
 {
   const q = Math.max(80, Math.min(480, Number(EVENT.qrSize) || 170));
   document.documentElement.style.setProperty("--qr-w", `clamp(${Math.round(q * 0.5)}px, ${(q / 19.2).toFixed(2)}vw, ${q}px)`);
@@ -247,7 +280,7 @@ $("overlay").hidden = true;
 
 // ---------- QR ----------
 function paintBigQR() {
-  if (!$("bigqr").hidden) drawQR($("bigqr-canvas"), participantUrl(), { pixels: 1400 });
+  if (!$("bigqr").hidden) drawQR($("bigqr-canvas"), participantUrl(), { pixels: 1400, light: "#ffffff" });
 }
 function toggleBigQR(force) {
   const show = typeof force === "boolean" ? force : $("bigqr").hidden;
@@ -259,7 +292,7 @@ $("btn-bigqr").addEventListener("click", () => toggleBigQR());
 $("bigqr").addEventListener("click", () => toggleBigQR(false));
 
 function paintQR() {
-  const ok = drawQR($("qr"), participantUrl());
+  const ok = drawQR($("qr"), participantUrl(), { light: "#ffffff" });
   if (!ok && !qrBox.querySelector(".qr-fallback")) {
     $("qr").hidden = true;
     const s = document.createElement("span");
@@ -280,7 +313,11 @@ function liveCards() {
 function bounds(cw, ch) {
   const W = stage.clientWidth, H = stage.clientHeight;
   const topBand = Math.max(masthead.getBoundingClientRect().bottom, qrBox.getBoundingClientRect().bottom) + 18;
-  const bottomLimit = foot.getBoundingClientRect().top - 10;
+  let bottomEdge = foot.getBoundingClientRect().top;
+  for (const el of [$("wall-note"), $("corner-logo")]) {
+    if (!el.hidden) bottomEdge = Math.min(bottomEdge, el.getBoundingClientRect().top);
+  }
+  const bottomLimit = bottomEdge - 10;
   const pad = Math.max(18, W * 0.03);
   let xMin = (pad + cw / 2) / W, xMax = 1 - xMin;
   let yMin = (topBand + ch / 2) / H, yMax = (bottomLimit - ch / 2) / H;
@@ -360,7 +397,8 @@ function spawn(id, msg, life, fresh) {
   const note = el.querySelector(".note");
   if (msg.kind) {
     const tag = document.createElement("span");
-    tag.className = "kind-tag";
+    const ki = kindIndex(msg.kind);
+    tag.className = "kind-tag" + (ki >= 0 && ki < 3 ? " k" + ki : "");
     tag.textContent = String(msg.kind).slice(0, 20);
     note.prepend(tag);
   }
@@ -419,7 +457,8 @@ let notice = null; // { id, timer }
 function showNotice(id, d, life) {
   if (notice) clearTimeout(notice.timer);
   body.dataset.notice = NOTICE_COLORS.includes(d.noticeColor) ? d.noticeColor : "blue";
-  $("notice-text").textContent = shownOf(d);
+  $("notice-body").textContent = shownOf(d);
+  $("notice-q").hidden = d.noticeType !== "qna";
   const el = $("notice");
   el.hidden = false;
   void el.offsetWidth; // 숨김을 푼 뒤 한 박자 쉬고 서서히 나타나게
@@ -456,7 +495,7 @@ function start() {
       const key = id + ":" + d.liveAt.toMillis();
       if (handled.has(key)) {
         refreshText(id, d);
-        if (notice && notice.id === id) $("notice-text").textContent = shownOf(d);
+        if (notice && notice.id === id) $("notice-body").textContent = shownOf(d);
         continue;
       }
       handled.add(key);
@@ -507,6 +546,7 @@ function toggleFull() {
 fullBtn.addEventListener("click", toggleFull);
 document.addEventListener("fullscreenchange", () => {
   fullBtn.textContent = document.fullscreenElement ? "전체화면 끝내기" : "전체화면";
+  body.classList.toggle("fs", Boolean(document.fullscreenElement)); // 전체화면에서는 조작 막대를 아예 숨겨요
 });
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;

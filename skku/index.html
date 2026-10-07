@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css?v=20261007n">
+<link rel="stylesheet" href="common.css?v=20261007r">
 <style>
 /* 참여 화면: 폰 한 장 크기. 위는 밤하늘 제목, 아래는 종이 한 장 */
 body{min-height:100vh;min-height:100dvh;background:var(--sky-bg)}
@@ -18,7 +18,8 @@ body{min-height:100vh;min-height:100dvh;background:var(--sky-bg)}
   display:grid;gap:22px;
 }
 .hero{display:grid;gap:10px;padding-inline:4px}
-.hero h1{margin:0;font:700 34px/1.15 var(--f-display);text-wrap:balance}
+.hero h1{margin:0;font:700 34px/1.15 var(--f-display);white-space:nowrap;overflow:hidden}
+.hero .brand-row{font-size:12px}
 .hero p{margin:0;color:var(--mist);font-size:15px;line-height:1.55}
 
 .sheet{
@@ -39,7 +40,7 @@ input[type="text"],textarea{
   border:1px solid var(--field-line);border-radius:10px;padding:12px 14px;
   font:400 16px/1.4 var(--f-ui);
 }
-textarea{font:700 22px/1.3 var(--f-note);resize:none}
+textarea{font:700 18px/1.4 var(--f-note);resize:none}
 input::placeholder,textarea::placeholder{color:var(--ink-soft)}
 .swatches{border:0;margin:0;padding:0;min-width:0}
 .swatches legend{padding:0;margin-bottom:10px}
@@ -60,6 +61,11 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
 .kind-row input:checked + label{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .theme-smc .kind-row input:checked + label{background:var(--samsung-blue);border-color:var(--samsung-blue)}
 .kind-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:3px}
+.kind-row input.k0:checked + label{background:var(--kind-0);border-color:var(--kind-0-line);color:var(--kind-0-ink)}
+.kind-row input.k1:checked + label{background:var(--kind-1);border-color:var(--kind-1-line);color:var(--kind-1-ink)}
+.kind-row input.k2:checked + label{background:var(--kind-2);border-color:var(--kind-2-line);color:var(--kind-2-ink)}
+.kind-row input.k0:checked + label,.kind-row input.k1:checked + label,.kind-row input.k2:checked + label{font-weight:600;box-shadow:inset 0 0 0 1px currentColor}
+.kind-row input:checked + label::before{content:"✓";margin-right:5px;font-weight:700}
 
 .send{
   width:100%;padding:16px;border:0;border-radius:12px;cursor:pointer;
@@ -72,14 +78,18 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
 .done .kicker{margin:0;font:600 13px/1 var(--f-ui);letter-spacing:.12em;color:var(--ink-soft)}
 .done .note{width:min(280px,100%);text-align:left;margin:10px 0 6px;box-shadow:0 12px 26px rgba(29,39,49,.18)}
 
-.footnote{margin:0;text-align:center;color:var(--mist);font-size:12px;line-height:1.6}
+.footnote{margin:0;padding-inline:4px;text-align:center;color:var(--mist);font-size:12px;line-height:1.65;word-break:keep-all;white-space:pre-line}
+.guide{margin:0;color:var(--ink-soft);font:500 12.5px/1.5 var(--f-ui)}
 </style>
 </head>
 <body>
 <main class="wrap">
   <header class="hero">
-    <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
-    <h1 data-text="title">올해의 한마디</h1>
+    <div class="brand-row">
+      <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
+      <span class="logo-box" hidden><img data-logo="logo" alt=""></span>
+    </div>
+    <h1 id="title" data-text="title">올해의 한마디</h1>
     <p data-text="sendLead">보낸 메시지는 앞 화면에 2분 동안 떠 있어요.</p>
   </header>
 
@@ -87,14 +97,15 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
     <form id="form" novalidate>
       <div class="field">
         <label for="name">이름 (선택)</label>
-        <input id="name" type="text" maxlength="12" placeholder="비워두면 익명으로 올라가요" autocomplete="off">
+        <input id="name" type="text" maxlength="12" data-placeholder="namePlaceholder" placeholder="비워두면 익명으로 올라가요" autocomplete="off">
       </div>
       <div class="field">
         <div class="field-head">
           <label for="msg">메시지</label>
           <span class="count" id="count">0/80</span>
         </div>
-        <textarea id="msg" rows="3" maxlength="80" aria-describedby="count" data-placeholder="placeholder" placeholder="한 해 동안 고마웠던 사람에게, 하고 싶은 말을 남겨주세요"></textarea>
+        <p class="guide" id="write-guide" hidden></p>
+        <textarea id="msg" rows="3" maxlength="80" aria-describedby="count write-guide" data-placeholder="placeholder" placeholder="한 해 동안 고마웠던 사람에게, 하고 싶은 말을 남겨주세요"></textarea>
       </div>
       <fieldset class="kinds" id="kinds" hidden>
         <legend>어떤 메시지인가요?</legend>
@@ -142,13 +153,28 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
   }, 10000);
 </script>
 <script type="module">
-import { EVENT } from "./config.js?v=20261007n";
-import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js?v=20261007n";
-import { applyText, applyTheme, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js?v=20261007n";
+import { EVENT } from "./config.js?v=20261007r";
+import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js?v=20261007r";
+import { applyText, applyTheme, applyLogos, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js?v=20261007r";
 
 window.__wallReady = true;
 applyTheme();
 applyText();
+applyLogos();
+
+// 제목이 폰에서 끊기지 않고 한 줄로 보이게 글자 크기를 맞춰요
+function fitTitle() {
+  const h = document.getElementById("title");
+  let size = 34;
+  h.style.fontSize = size + "px";
+  while (h.scrollWidth > h.clientWidth && size > 18) {
+    size -= 1;
+    h.style.fontSize = size + "px";
+  }
+}
+fitTitle();
+window.addEventListener("resize", fitTitle);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitle);
 document.title = EVENT.title || document.title;
 
 const $ = (id) => document.getElementById(id);
@@ -158,12 +184,19 @@ msgIn.maxLength = MAX;
 
 $("compose").hidden = false;
 $("notready").hidden = true;
+// 입력칸 위 작은 안내 (예: 비방·개인정보 자제)
+if (typeof EVENT.writeGuide === "string" && EVENT.writeGuide.trim()) {
+  $("write-guide").textContent = EVENT.writeGuide.trim();
+  $("write-guide").hidden = false;
+}
+
 // 메시지 종류 버튼
 if (KINDS.length) {
   const row = $("kind-row");
   KINDS.forEach((k, i) => {
     const input = document.createElement("input");
     input.type = "radio"; input.name = "kind"; input.id = "k-" + i; input.value = k;
+    if (i < 3) input.className = "k" + i;
     if (i === 0) input.checked = true;
     const label = document.createElement("label");
     label.htmlFor = input.id; label.textContent = k;
@@ -260,12 +293,16 @@ function showDone({ text, name, color, kind, mod }) {
   const tag = note.querySelector(".kind-tag");
   tag.textContent = kind || "";
   tag.hidden = !kind;
+  const ki = KINDS.indexOf(kind);
+  tag.className = "kind-tag" + (ki >= 0 && ki < 3 ? " k" + ki : "");
   note.querySelector("p").textContent = text;
   note.querySelector("figcaption").textContent = "— " + name;
   note.style.setProperty("--c", `var(--note-${color})`);
   note.style.setProperty("--rot", "-1.5deg");
   $("done-title").textContent = mod ? "운영진 확인 후 화면에 올라가요" : "앞 화면을 봐 주세요";
-  $("done-sub").textContent = mod ? "잠시만 기다려 주세요." : fill("메시지가 {시간} 동안 화면에 머물러요.");
+  $("done-sub").textContent = mod
+    ? "행사 취지에 맞지 않는 내용은 화면에 소개되지 않을 수 있어요."
+    : fill("메시지가 {시간} 동안 화면에 머물러요.");
   $("compose").hidden = true;
   $("done").hidden = false;
   msgIn.value = "";

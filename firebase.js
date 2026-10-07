@@ -1,7 +1,7 @@
 // Firebase 연결 (고칠 필요 없어요)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { firebaseConfig } from "./config.js?v=20261007n";
+import { firebaseConfig } from "./config.js?v=20261007r";
 
 export * from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 export const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";

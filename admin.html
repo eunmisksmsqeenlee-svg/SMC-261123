@@ -8,81 +8,153 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css?v=20261007n">
+<link rel="stylesheet" href="common.css?v=20261007r">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
-/* 관리 화면: 왼쪽은 메시지 흐름(대기 → 최근), 오른쪽은 운영 도구. 좁으면 한 줄로 */
+/* 관리 화면
+   위: 띄우는 방식 · 머무는 시간 · 현황 (한 줄)
+   아래 왼쪽: 메시지 (확인 대기 / 메시지 / 수정 이력 탭)
+   아래 오른쪽: 운영진 글쓰기, 접어 둔 도구(링크·QR·내려받기) */
 body{min-height:100vh;background:var(--sky-bg)}
 .wrap{
-  max-width:1120px;margin:0 auto;
-  padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px);
-  display:grid;gap:20px;
+  max-width:1180px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 48px);
+  display:grid;gap:16px;
 }
-.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
-.top h1{margin:6px 0 0;font:700 28px/1.2 var(--f-display)}
-.who{display:flex;flex-wrap:wrap;align-items:center;gap:10px;color:var(--mist);font-size:13px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 16px}
+.top h1{margin:8px 0 0;font:700 26px/1.2 var(--f-display)}
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--mist);font-size:13px}
 .who b{color:var(--paper);font-weight:500;overflow-wrap:anywhere}
+.btn.sm{padding:8px 11px;font-size:13px}
 
-.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
-.col{display:grid;gap:20px;min-width:0}
-@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.side{order:-1}}
+.panel{background:var(--dock);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.label{margin:0;font:600 12.5px/1.3 var(--f-ui);color:var(--mist);letter-spacing:.02em}
+.help{margin:0;color:var(--mist);font-size:12.5px;line-height:1.5}
 
-.panel{background:var(--dock);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
-.panel h2{margin:0;font:600 15px/1.3 var(--f-ui);display:flex;align-items:center;gap:8px}
-.panel h2 .n{font:600 12px/1 var(--f-ui);color:var(--ink);background:var(--glow);border-radius:999px;padding:4px 8px;font-variant-numeric:tabular-nums}
-.panel h2 .n.zero{background:var(--hover);color:var(--mist)}
-.panel p.help{margin:0;color:var(--mist);font-size:13px;line-height:1.55}
+.dash{display:grid;gap:16px;min-width:0}
 
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--night-deep);border:1px solid var(--line);border-radius:11px}
-.seg button{border:0;border-radius:8px;padding:11px 8px;background:transparent;color:var(--mist);font:500 14px/1.2 var(--f-ui);cursor:pointer}
+/* ---------- 설정 줄 ---------- */
+.bar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) auto;gap:14px 24px;align-items:start}
+.set{display:grid;gap:8px;min-width:0}
+@media (max-width:900px){.bar{grid-template-columns:minmax(0,1fr)}}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;padding:3px;background:var(--night-deep);border:1px solid var(--line);border-radius:10px}
+.seg button{border:0;border-radius:7px;padding:9px 6px;background:transparent;color:var(--mist);font:500 13.5px/1.2 var(--f-ui);cursor:pointer;white-space:nowrap}
+.seg button:hover{color:var(--paper)}
 .seg button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600}
+.stats{display:flex;gap:6px}
+.stat{min-width:66px;background:var(--night-deep);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:4px}
+.stat span{font-size:11.5px;color:var(--mist)}
+.stat b{font:600 20px/1 var(--f-ui);font-variant-numeric:tabular-nums}
 
-.seg.seg4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.seg.seg4 button{padding:11px 4px}
-.pill.on{background:var(--ink);color:var(--paper)}
-.pill.pin{background:var(--glow);color:var(--ink)}
-.pill.past{background:rgba(29,39,49,.1);color:var(--ink-soft)}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.stat{background:var(--night-deep);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
-.stat span{font-size:12px;color:var(--mist)}
-.stat b{font:600 22px/1 var(--f-ui);font-variant-numeric:tabular-nums}
+/* ---------- 본문 ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+.side{display:grid;gap:16px;min-width:0}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 
+/* 탭 */
+.msgs{display:grid;gap:12px;padding-top:6px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs button{display:inline-flex;align-items:center;gap:7px;border:0;background:none;color:var(--mist);font:600 14px/1 var(--f-ui);padding:12px 12px 13px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;white-space:nowrap}
+.tabs button:hover{color:var(--paper)}
+.tabs button[aria-selected="true"]{color:var(--paper);border-bottom-color:var(--glow)}
+.n{font:600 11.5px/1 var(--f-ui);border-radius:999px;padding:3px 7px;background:var(--hover);color:var(--mist);font-variant-numeric:tabular-nums}
+.n.hot{background:var(--glow);color:var(--ink)}
+.tab-panel{display:grid;gap:10px;min-width:0}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--mist);border-radius:999px;padding:6px 11px;font:500 12.5px/1 var(--f-ui);cursor:pointer}
+.filters button i{width:8px;height:8px;border-radius:50%;background:var(--dot)}
+.filters button[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:transparent;font-weight:600}
+
+/* 메시지 한 줄 */
 .list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .row{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
-  background:var(--c,var(--note-cream));color:var(--ink);border-radius:8px;padding:12px 12px 12px 14px;
+  position:relative;overflow:hidden;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;align-items:center;
+  background:var(--paper);color:var(--ink);border-radius:10px;padding:12px 12px 12px 18px;
 }
-.row[data-status="hidden"]{background:transparent;color:var(--mist);border:1px dashed var(--line)}
-.row-text{margin:0;font:700 20px/1.3 var(--f-note);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
-.row-meta{margin:4px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font:500 12px/1.3 var(--f-ui);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--stripe,rgba(29,39,49,.22))}
+.row[data-status="hidden"]{background:transparent;color:var(--mist);box-shadow:inset 0 0 0 1px var(--line)}
+.row[data-status="hidden"]::before{opacity:.35}
+.row-text{margin:0;font:700 21px/1.3 var(--f-note);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.row-text .q{font-family:var(--f-ui);font-size:.85em;color:var(--samsung-blue);margin-right:.3em}
+.row[data-status="hidden"] .row-text .q{color:inherit}
+.row-meta{margin:7px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:5px;font:500 12px/1.3 var(--f-ui);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.row-meta .by{margin-left:3px}
 .row[data-status="hidden"] .row-meta{color:var(--mist)}
-.pill{font:600 11px/1 var(--f-ui);border-radius:999px;padding:4px 7px;background:rgba(29,39,49,.1)}
-.row[data-status="hidden"] .pill{background:var(--hover);color:var(--mist)}
+.row-orig{margin:6px 0 0;font:500 12px/1.45 var(--f-ui);color:var(--ink-soft);overflow-wrap:anywhere}
+.row-orig b{font-weight:600}
+.row[data-status="hidden"] .row-orig{color:var(--mist)}
+
+.pill{font:600 11px/1 var(--f-ui);border-radius:999px;padding:4px 8px;background:rgba(29,39,49,.08);color:var(--ink);white-space:nowrap}
+.pill.wait{background:#fbe3c0;color:#7a4300}
+.pill.on{background:#d3eedd;color:#145a35}
+.pill.pin{background:#fadde8;color:#8b2d55}
+.pill.past{color:var(--ink-soft)}
+.pill.kind{background:#e4e7ea;color:var(--ink)}
+.pill.kind.k0{background:var(--kind-0);color:var(--kind-0-ink);box-shadow:inset 0 0 0 1px var(--kind-0-line)}
+.pill.kind.k1{background:var(--kind-1);color:var(--kind-1-ink);box-shadow:inset 0 0 0 1px var(--kind-1-line)}
+.pill.kind.k2{background:var(--kind-2);color:var(--kind-2-ink);box-shadow:inset 0 0 0 1px var(--kind-2-line)}
+.pill.notice{background:#fff;color:var(--samsung-blue);box-shadow:inset 0 0 0 1px rgba(20,40,160,.45)}
+.pill.staff,.pill.edited{background:transparent;box-shadow:inset 0 0 0 1px rgba(29,39,49,.3)}
+.row[data-status="hidden"] .pill{background:var(--hover);color:var(--mist);box-shadow:none}
+
 .row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mini{border:1px solid rgba(29,39,49,.25);background:transparent;color:var(--ink);border-radius:8px;padding:8px 10px;font:600 13px/1 var(--f-ui);cursor:pointer;white-space:nowrap}
-.mini:hover{background:rgba(29,39,49,.08)}
+.mini{border:1px solid rgba(29,39,49,.2);background:#fff;color:var(--ink);border-radius:8px;padding:8px 11px;font:600 13px/1 var(--f-ui);cursor:pointer;white-space:nowrap}
+.mini:hover{background:#eef0f2}
 .mini.go{background:var(--ink);color:var(--paper);border-color:transparent}
-.row[data-status="hidden"] .mini{color:var(--paper);border-color:var(--line)}
+.mini.go:hover{background:#33424f}
+.row[data-status="hidden"] .mini{background:transparent;color:var(--paper);border-color:var(--line)}
 .row[data-status="hidden"] .mini:hover{background:var(--hover)}
 .mini:disabled{opacity:.4;cursor:default}
-.filters{display:flex;flex-wrap:wrap;gap:6px}
-.filters button{border:1px solid var(--line);background:transparent;color:var(--mist);border-radius:999px;padding:7px 12px;font:500 13px/1 var(--f-ui);cursor:pointer}
-.filters button[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:transparent;font-weight:600}
-.pill.kind{background:rgba(29,39,49,.1);color:var(--ink)}
-.theme-smc .pill.kind{background:var(--samsung-blue);color:#fff}
-.row[data-status="hidden"] .pill.kind{background:var(--hover);color:var(--mist)}
-.empty{margin:0;padding:18px;text-align:center;color:var(--mist);font-size:14px;border:1px dashed var(--line);border-radius:10px}
+@media (max-width:620px){.row{grid-template-columns:minmax(0,1fr)}.row-actions{justify-content:flex-start}}
+.empty{margin:0;padding:22px 16px;text-align:center;color:var(--mist);font-size:14px;border:1px dashed var(--line);border-radius:10px}
 
-.link-box{display:flex;gap:8px;align-items:stretch}
-.link-box input{flex:1;min-width:0;background:var(--night-deep);color:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:500 13px/1.2 ui-monospace,Menlo,Consolas,monospace}
-.qr-wrap{display:grid;justify-items:center;gap:10px;padding:14px;background:var(--paper);border-radius:12px}
-.qr-wrap canvas{width:min(220px,100%);height:auto;aspect-ratio:1;display:block}
-.qr-wrap span{color:var(--ink);font:600 13px/1.3 var(--f-ui)}
+/* 수정 이력 */
+.log-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px}
+.log-head .help{flex:1 1 260px}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.log li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:6px;background:var(--night-deep)}
+.log .meta{font:500 12px/1.3 var(--f-ui);color:var(--mist);font-variant-numeric:tabular-nums}
+.log .meta b{color:var(--paper);font-weight:600}
+.log .before{margin:0;font-size:13px;line-height:1.5;color:var(--mist);text-decoration:line-through;overflow-wrap:anywhere;white-space:pre-line}
+.log .after{margin:0;font-size:14px;line-height:1.5;color:var(--paper);overflow-wrap:anywhere;white-space:pre-line}
+
+/* ---------- 운영진 글쓰기 ---------- */
+.compose{display:grid;gap:10px}
+.compose h2{margin:0 0 2px;font:600 15px/1.3 var(--f-ui)}
+.field-dark{width:100%;background:var(--night-deep);color:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:400 15px/1.45 var(--f-ui)}
+.field-dark:focus{border-color:var(--mist);outline:none}
+textarea.field-dark{resize:vertical;min-height:96px}
+.count-line{display:flex;justify-content:space-between;align-items:center;gap:8px;font:500 12px/1.3 var(--f-ui);color:var(--mist);font-variant-numeric:tabular-nums}
+.count-line .hint{color:var(--glow)}
+.c-row{display:flex;flex-wrap:wrap;gap:8px}
+.c-row label{flex:1 1 120px;min-width:0;display:grid;gap:5px;font:500 12px/1 var(--f-ui);color:var(--mist)}
+.c-row label:first-child{flex:1.5 1 170px}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+.btn-row .btn{flex:1 1 auto}
+.btn.blue{background:var(--samsung-blue);color:#fff;border-color:transparent;font-weight:600}
+.btn.blue:hover{background:#2238bd}
+
+/* ---------- 접어 둔 도구 ---------- */
+.tools{padding:0}
+.tools summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 14px/1.3 var(--f-ui);border-radius:14px}
+.tools summary::-webkit-details-marker{display:none}
+.tools summary::after{content:"";flex:none;width:7px;height:7px;margin-right:4px;border-right:2px solid var(--mist);border-bottom:2px solid var(--mist);transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.tools[open] summary::after{transform:rotate(-135deg)}
+.tools-body{display:grid;gap:12px;padding:2px 16px 16px}
+.tools hr{width:100%;border:0;border-top:1px solid var(--line);margin:2px 0}
+.link-box{display:flex;gap:8px;align-items:stretch}
+.link-box input{flex:1;min-width:0;background:var(--night-deep);color:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font:500 12.5px/1.2 ui-monospace,Menlo,Consolas,monospace}
+.qr-wrap{display:grid;justify-items:center;gap:8px;padding:14px;background:#fff;border-radius:12px}
+.qr-wrap canvas{width:min(200px,100%);height:auto;aspect-ratio:1;display:block}
+.qr-wrap span{color:var(--ink);font:600 12.5px/1.3 var(--f-ui)}
 .btn.danger{color:var(--danger);border-color:rgba(232,144,127,.45)}
 .btn.danger.armed{background:var(--danger);color:var(--ink);border-color:transparent;font-weight:600}
 
-.login{max-width:440px;justify-self:center;width:100%}
+/* ---------- 로그인 ---------- */
+.login{max-width:440px;justify-self:center;width:100%;display:grid;gap:14px}
+.login h2{margin:0;font:600 16px/1.3 var(--f-ui)}
 .pw-form{display:grid;gap:8px}
 .pw-form label{font:600 13px/1 var(--f-ui);color:var(--paper)}
 .pw-row{display:flex;gap:8px}
@@ -93,51 +165,19 @@ body{min-height:100vh;background:var(--sky-bg)}
 .google:hover{background:#fff}
 .err{margin:0;color:var(--danger);font-size:14px;line-height:1.55}
 
-/* 원문 / 수정 표시 */
-.row-orig{margin:6px 0 0;font:500 12px/1.45 var(--f-ui);color:var(--ink-soft);overflow-wrap:anywhere}
-.row-orig b{font-weight:600}
-.row[data-status="hidden"] .row-orig{color:var(--mist)}
-.pill.edited{background:transparent;border:1px solid rgba(29,39,49,.35)}
-.pill.staff{background:rgba(29,39,49,.75);color:var(--paper)}
-.row[data-status="hidden"] .pill.edited{border-color:var(--line)}
-
-/* 직접 쓰기 */
-.field-dark{width:100%;background:var(--night-deep);color:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:400 15px/1.45 var(--f-ui)}
-textarea.field-dark{resize:vertical;min-height:84px}
-.c-row{display:flex;flex-wrap:wrap;gap:8px}
-.c-row > *{flex:1 1 140px;min-width:0}
-.count-line{display:flex;justify-content:space-between;align-items:center;gap:8px;font:500 12px/1 var(--f-ui);color:var(--mist);font-variant-numeric:tabular-nums}
-
-/* 공지 */
-.check{display:flex;align-items:center;gap:8px;font:500 14px/1.3 var(--f-ui);color:var(--paper);cursor:pointer}
-.check input{width:18px;height:18px;accent-color:var(--glow)}
-.nc-row{display:flex;flex-wrap:wrap;gap:8px}
-.nc-row input{position:absolute;opacity:0;width:1px;height:1px}
-.nc-row label{display:inline-flex;align-items:center;gap:6px;padding:7px 10px 7px 8px;border:1px solid var(--line);border-radius:999px;font:500 13px/1 var(--f-ui);color:var(--mist);cursor:pointer}
-.nc-row label i{width:16px;height:16px;border-radius:50%;background:var(--sw);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
-.nc-row input:checked + label{border-color:var(--paper);color:var(--paper)}
-.nc-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:2px}
-.pill.notice{display:inline-flex;align-items:center;gap:5px;background:rgba(29,39,49,.75);color:var(--paper)}
-.pill.notice i{width:9px;height:9px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1px rgba(255,255,255,.5)}
-
-/* 수정 이력 */
-.log{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:420px;overflow:auto}
-.log li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:6px;background:var(--night-deep)}
-.log .meta{font:500 12px/1.3 var(--f-ui);color:var(--mist);font-variant-numeric:tabular-nums}
-.log .meta b{color:var(--paper);font-weight:600}
-.log .before{margin:0;font-size:13px;line-height:1.5;color:var(--mist);text-decoration:line-through;overflow-wrap:anywhere}
-.log .after{margin:0;font-size:14px;line-height:1.5;color:var(--paper);overflow-wrap:anywhere}
-
-/* 수정 창 */
+/* ---------- 수정 창 ---------- */
 .modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:var(--scrim);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-.modal-card{width:min(560px,100%);max-height:100%;overflow:auto;background:var(--night);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:12px;box-shadow:0 30px 80px var(--shadow)}
+.modal-card{width:min(580px,100%);max-height:100%;overflow:auto;background:var(--night);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:12px;box-shadow:0 30px 80px var(--shadow)}
 .modal-card h2{margin:0;font:600 17px/1.3 var(--f-ui)}
 .orig-box{background:var(--night-deep);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
 .orig-box span{font:600 11px/1 var(--f-ui);letter-spacing:.08em;color:var(--glow)}
 .orig-box p{margin:0;font-size:14px;line-height:1.55;color:var(--paper);overflow-wrap:anywhere;white-space:pre-line}
-.modal-card label{font:600 13px/1 var(--f-ui)}
+.modal-card > label{font:600 13px/1 var(--f-ui)}
 .linkish{background:none;border:0;padding:0;color:var(--glow);font:500 13px/1 var(--f-ui);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.btn-row.end{justify-content:flex-end}
+.modal-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.modal-actions .spacer{flex:1 1 0}
+.qna-box{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border-radius:10px;background:rgba(20,40,160,.22);border:1px solid rgba(120,140,255,.35)}
+.qna-box .help{flex:1 1 220px;color:var(--paper);opacity:.85}
 </style>
 </head>
 <body>
@@ -148,8 +188,9 @@ textarea.field-dark{resize:vertical;min-height:84px}
       <h1>메시지월 관리</h1>
     </div>
     <div class="who" id="who" hidden>
-      <span><b id="who-email"></b> 로그인됨</span>
-      <button class="btn" type="button" id="logout">로그아웃</button>
+      <a class="btn primary sm" id="open-wall" href="wall.html" target="_blank" rel="noopener">월 화면 열기 ↗</a>
+      <span><b id="who-email"></b></span>
+      <button class="btn sm" type="button" id="logout">로그아웃</button>
     </div>
   </header>
 
@@ -176,98 +217,111 @@ textarea.field-dark{resize:vertical;min-height:84px}
     <p><code>config.js</code> 파일에 Firebase 설정을 붙여넣으면 관리 화면이 열려요.</p>
   </div>
 
-  <div class="grid" id="dash" hidden>
-    <div class="col">
-      <section class="panel" id="pending-panel">
-        <h2>확인 기다리는 메시지 <span class="n zero" id="n-pending">0</span></h2>
-        <ul class="list" id="pending-list"></ul>
-        <p class="empty" id="pending-empty">기다리는 메시지가 없어요</p>
-      </section>
-
-      <section class="panel">
-        <h2>최근 메시지 <span class="n zero" id="n-recent">0</span></h2>
-        <div class="filters" id="filters" role="group" aria-label="메시지 종류로 보기" hidden></div>
-        <p class="help">숨기기를 누르면 월 화면에서 바로 사라져요. 다시 띄우기를 누르면 오른쪽에서 고른 시간만큼 다시 떠올라요.</p>
-        <ul class="list" id="recent-list"></ul>
-        <p class="empty" id="recent-empty">아직 메시지가 없어요</p>
-      </section>
-
-      <section class="panel">
-        <h2>수정 이력 <span class="n zero" id="n-log">0</span></h2>
-        <p class="help">참여자가 보낸 원문은 바뀌지 않아요. 운영진이 문구를 고치거나 직접 쓴 내용은 누가, 언제, 무엇을 무엇으로 바꿨는지 여기에 모두 남고, 이 이력은 지울 수 없어요.</p>
-        <ul class="log" id="log-list"></ul>
-        <p class="empty" id="log-empty">아직 수정하거나 직접 쓴 메시지가 없어요</p>
-        <div class="btn-row"><button class="btn" type="button" id="log-export">수정 이력 내려받기(CSV)</button></div>
-      </section>
-    </div>
-
-    <div class="col side">
-      <section class="panel">
-        <h2>띄우는 방식</h2>
+  <div class="dash" id="dash" hidden>
+    <!-- 설정 줄 -->
+    <section class="panel bar" aria-label="화면 설정">
+      <div class="set">
+        <p class="label">띄우는 방식</p>
         <div class="seg" role="group" aria-label="띄우는 방식">
           <button type="button" id="mode-live" aria-pressed="true">바로 띄우기</button>
           <button type="button" id="mode-mod" aria-pressed="false">확인 후 띄우기</button>
         </div>
-        <p class="help" id="mode-help">보내는 즉시 월 화면에 떠요. 이상한 메시지는 숨기기로 내리면 돼요.</p>
-        <div class="stats">
-          <div class="stat"><span>대기</span><b id="s-pending">0</b></div>
-          <div class="stat"><span>띄움</span><b id="s-live">0</b></div>
-          <div class="stat"><span>숨김</span><b id="s-hidden">0</b></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>띄울 때 머무는 시간</h2>
-        <div class="seg seg4" role="group" aria-label="띄울 때 머무는 시간" id="stay-seg">
+        <p class="help" id="mode-help"></p>
+      </div>
+      <div class="set">
+        <p class="label">띄울 때 머무는 시간</p>
+        <div class="seg" role="group" aria-label="띄울 때 머무는 시간" id="stay-seg">
           <button type="button" data-stay="default" aria-pressed="true" id="stay-default">기본</button>
           <button type="button" data-stay="300" aria-pressed="false">5분</button>
           <button type="button" data-stay="600" aria-pressed="false">10분</button>
           <button type="button" data-stay="0" aria-pressed="false">고정</button>
         </div>
         <p class="help" id="stay-help"></p>
+      </div>
+      <div class="set">
+        <p class="label">현황</p>
+        <div class="stats">
+          <div class="stat"><span>대기</span><b id="s-pending">0</b></div>
+          <div class="stat"><span>띄움</span><b id="s-live">0</b></div>
+          <div class="stat"><span>숨김</span><b id="s-hidden">0</b></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- 메시지 -->
+      <section class="panel msgs" aria-label="메시지">
+        <div class="tabs" role="tablist" aria-label="메시지 보기">
+          <button type="button" role="tab" id="tab-pending" aria-controls="pending-panel" aria-selected="false">확인 대기 <span class="n" id="n-pending">0</span></button>
+          <button type="button" role="tab" id="tab-recent" aria-controls="recent-panel" aria-selected="true">메시지 <span class="n" id="n-recent">0</span></button>
+          <button type="button" role="tab" id="tab-log" aria-controls="log-panel" aria-selected="false">수정 이력 <span class="n" id="n-log">0</span></button>
+        </div>
+        <div class="filters" id="filters" role="group" aria-label="메시지 종류로 보기" hidden></div>
+
+        <div class="tab-panel" id="pending-panel" role="tabpanel" aria-labelledby="tab-pending" hidden>
+          <ul class="list" id="pending-list"></ul>
+          <p class="empty" id="pending-empty">확인을 기다리는 메시지가 없어요</p>
+        </div>
+
+        <div class="tab-panel" id="recent-panel" role="tabpanel" aria-labelledby="tab-recent">
+          <ul class="list" id="recent-list"></ul>
+          <p class="empty" id="recent-empty">아직 메시지가 없어요</p>
+        </div>
+
+        <div class="tab-panel" id="log-panel" role="tabpanel" aria-labelledby="tab-log" hidden>
+          <div class="log-head">
+            <p class="help">참여자가 보낸 원문은 바뀌지 않아요. 운영진이 고치거나 직접 쓴 기록은 모두 남고, 지울 수 없어요.</p>
+            <button class="btn sm" type="button" id="log-export">CSV로 받기</button>
+          </div>
+          <ul class="log" id="log-list"></ul>
+          <p class="empty" id="log-empty">아직 수정하거나 직접 쓴 메시지가 없어요</p>
+        </div>
       </section>
 
-      <section class="panel">
-        <h2>운영진이 직접 쓰기</h2>
-        <textarea class="field-dark" id="c-text" maxlength="200" placeholder="예: 잠시 후 설명회가 시작됩니다. 자리에 앉아 주세요" aria-label="띄울 문구"></textarea>
-        <div class="count-line"><span>이름과 종류</span><span id="c-count">0/200</span></div>
-        <div class="c-row">
-          <input class="field-dark" id="c-name" type="text" maxlength="12" value="운영진" aria-label="이름">
-          <select class="field-dark" id="c-kind" aria-label="종류" hidden></select>
-        </div>
-        <label class="check" for="c-notice"><input type="checkbox" id="c-notice"> 화면 가득 공지로 띄우기</label>
-        <div class="nc-row" id="c-colors" role="radiogroup" aria-label="공지 배경색" hidden></div>
-        <div class="btn-row">
-          <button class="btn primary" type="button" id="c-show" disabled>바로 띄우기</button>
-          <button class="btn" type="button" id="c-queue" disabled>대기에 넣기</button>
-        </div>
-        <p class="help" id="c-help">바로 띄우기는 위에서 고른 머무는 시간이 적용돼요. 대기에 넣으면 '확인 기다리는 메시지'에 있다가 원할 때 띄울 수 있어요.</p>
-      </section>
+      <div class="side">
+        <!-- 운영진 글쓰기 -->
+        <section class="panel compose" aria-labelledby="c-title">
+          <h2 id="c-title">운영진 글쓰기</h2>
+          <div class="seg" role="group" aria-label="글 종류" id="c-type">
+            <button type="button" data-type="note" id="ct-note" aria-pressed="true">쪽지</button>
+            <button type="button" data-type="notice" id="ct-notice" aria-pressed="false">전체 화면 공지</button>
+            <button type="button" data-type="qna" id="ct-qna" aria-pressed="false">질의응답</button>
+          </div>
+          <textarea class="field-dark" id="c-text" maxlength="200" aria-label="띄울 문구"></textarea>
+          <div class="count-line"><span class="hint" id="c-hint"></span><span id="c-count">0/200</span></div>
+          <div class="c-row" id="c-meta">
+            <label>표시 이름<input class="field-dark" id="c-name" type="text" maxlength="12"></label>
+            <label id="c-kind-wrap" hidden>종류<select class="field-dark" id="c-kind"></select></label>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" type="button" id="c-show" disabled>바로 띄우기</button>
+            <button class="btn" type="button" id="c-queue" disabled>대기에 넣기</button>
+          </div>
+          <p class="help" id="c-help"></p>
+        </section>
 
-      <section class="panel">
-        <h2>참여 링크와 QR</h2>
-        <div class="link-box">
-          <input id="link" type="text" readonly aria-label="참여 링크">
-          <button class="btn" type="button" id="copy">복사</button>
-        </div>
-        <div class="qr-wrap">
-          <canvas id="qr" aria-label="참여 QR 코드"></canvas>
-          <span>테이블·포스터용 QR</span>
-        </div>
-        <div class="btn-row">
-          <button class="btn" type="button" id="qr-save">QR 이미지 저장</button>
-          <a class="btn primary" id="open-wall" href="wall.html" target="_blank" rel="noopener">월 화면 열기</a>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>정리</h2>
-        <p class="help">행사가 끝나면 메시지를 엑셀로 받아 두세요. 리허설 후에는 테스트 메시지를 지우고 시작하면 깔끔해요.</p>
-        <div class="btn-row">
-          <button class="btn" type="button" id="export">엑셀(CSV)로 내려받기</button>
-          <button class="btn danger" type="button" id="wipe">메시지 모두 지우기</button>
-        </div>
-      </section>
+        <!-- 도구 (접어 둠) -->
+        <details class="panel tools" id="tools">
+          <summary>참여 링크 · QR · 내려받기</summary>
+          <div class="tools-body">
+            <div class="link-box">
+              <input id="link" type="text" readonly aria-label="참여 링크">
+              <button class="btn sm" type="button" id="copy">복사</button>
+            </div>
+            <div class="qr-wrap">
+              <canvas id="qr" aria-label="참여 QR 코드"></canvas>
+              <span>테이블·포스터용 QR</span>
+            </div>
+            <div class="btn-row"><button class="btn" type="button" id="qr-save">QR 이미지 저장</button></div>
+            <hr>
+            <p class="help">행사가 끝나면 메시지를 엑셀(CSV)로 받아 두세요. 리허설 뒤에는 테스트 메시지를 지우고 시작하면 깔끔해요.</p>
+            <div class="btn-row">
+              <button class="btn" type="button" id="export">메시지 엑셀(CSV)</button>
+              <button class="btn danger" type="button" id="wipe">메시지 모두 지우기</button>
+            </div>
+          </div>
+        </details>
+      </div>
     </div>
   </div>
 </div>
@@ -280,8 +334,13 @@ textarea.field-dark{resize:vertical;min-height:84px}
     <textarea class="field-dark" id="edit-text" maxlength="200"></textarea>
     <div class="count-line"><button type="button" class="linkish" id="edit-restore">원문 불러오기</button><span id="edit-count">0/200</span></div>
     <p class="help">저장하면 화면 문구만 바뀌고, 원문과 수정 이력은 그대로 남아요. 지금 떠 있는 메시지는 화면에서도 바로 바뀌어요.</p>
+    <div class="qna-box" id="edit-qna-box">
+      <p class="help">위 문구 앞에 <b>Q.</b>를 붙여 전체 화면 공지로 띄워요. 원래 메시지는 그대로 남아요.</p>
+      <button class="btn blue" type="button" id="edit-qna">Q. 질의응답으로 띄우기</button>
+    </div>
     <p class="err" id="edit-err" role="alert" hidden></p>
-    <div class="btn-row end">
+    <div class="modal-actions">
+      <span class="spacer"></span>
       <button class="btn" type="button" id="edit-cancel">취소</button>
       <button class="btn" type="button" id="edit-save">저장</button>
       <button class="btn primary" type="button" id="edit-save-show">저장하고 띄우기</button>
@@ -292,18 +351,26 @@ textarea.field-dark{resize:vertical;min-height:84px}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script type="module">
-import { EVENT } from "./config.js?v=20261007n";
+import { EVENT } from "./config.js?v=20261007r";
 import {
   configured, app, db, SDK,
   collection, doc, query, orderBy, limit, onSnapshot, updateDoc, setDoc, getDocs, writeBatch, serverTimestamp
-} from "./firebase.js?v=20261007n";
-import { applyText, applyTheme, participantUrl, drawQR, makeToast, timeText, lifetimeLabel, COL, CFG_DOC, LOG_COL, SHOW_MAX, NOTICE_COLORS, NOTICE_NAMES, KINDS, moderationFrom, OPERATOR_EMAIL, isOperator, authErrorText } from "./shared.js?v=20261007n";
+} from "./firebase.js?v=20261007r";
+import { applyText, applyTheme, participantUrl, drawQR, makeToast, timeText, lifetimeLabel, COL, CFG_DOC, LOG_COL, SHOW_MAX, KINDS, kindIndex, moderationFrom, OPERATOR_EMAIL, isOperator, authErrorText } from "./shared.js?v=20261007r";
 
 applyTheme();
 applyText();
 const $ = (id) => document.getElementById(id);
 const toast = makeToast($("toast"));
-const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
+const STAFF_NAME = String(EVENT.staffName || "").trim().slice(0, 12) || "운영진";
+
+// 작은 요소 만들기 도우미
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
 
 let currentEmail = "";
 function explain(err) {
@@ -321,7 +388,7 @@ const whoText = (email) => (email && email === OPERATOR_EMAIL ? "운영진 계�
 // ---------- 링크와 QR ----------
 const url = participantUrl();
 $("link").value = url;
-drawQR($("qr"), url, { pixels: 440 });
+drawQR($("qr"), url, { pixels: 440, light: "#ffffff" });
 $("copy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(url); toast("참여 링크를 복사했어요"); }
   catch { $("link").select(); toast("링크를 선택했어요. Ctrl+C로 복사해 주세요"); }
@@ -338,9 +405,33 @@ $("qr-save").addEventListener("click", () => {
   });
 });
 
-// ---------- 메시지 목록 ----------
+// ---------- 상태 ----------
 let rows = [];
+let logs = [];
 let moderation = false;
+let tab = "recent";
+let tabChosen = false; // 처음 설정을 받으면 한 번만 탭을 골라요
+
+// ---------- 탭 ----------
+const TABS = { pending: ["tab-pending", "pending-panel"], recent: ["tab-recent", "recent-panel"], log: ["tab-log", "log-panel"] };
+function setTab(t) {
+  tab = t;
+  Object.entries(TABS).forEach(([k, [b, p]]) => {
+    $(b).setAttribute("aria-selected", String(k === t));
+    $(b).tabIndex = k === t ? 0 : -1;
+    $(p).hidden = k !== t;
+  });
+  $("filters").hidden = !KINDS.length || t === "log";
+}
+Object.entries(TABS).forEach(([k, [b]]) => $(b).addEventListener("click", () => setTab(k)));
+$("tab-pending").parentElement.addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  const keys = Object.keys(TABS);
+  const next = keys[(keys.indexOf(tab) + (e.key === "ArrowRight" ? 1 : keys.length - 1)) % keys.length];
+  setTab(next);
+  $(TABS[next][0]).focus();
+});
+setTab("recent");
 
 // ---------- 머무는 시간 ----------
 const DEFAULT_STAY = Math.max(15, Number(EVENT.lifetimeSeconds) || 120);
@@ -353,9 +444,9 @@ function renderStay() {
   $("stay-seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.stay === stayChoice)));
   const sec = staySeconds();
   $("stay-help").textContent = (sec === 0
-    ? "띄우기·다시 띄우기를 누르면 숨기기를 누를 때까지 화면에 고정돼요. 질문에 답하는 동안 띄워 두기 좋아요."
-    : `띄우기·다시 띄우기를 누르면 ${stayText(sec)} 동안 화면에 떠 있어요.`)
-    + ` 참여자가 바로 보낸 메시지는 항상 기본 ${lifetimeLabel()}이에요.`;
+    ? "띄우기를 누르면 숨기기 전까지 화면에 고정돼요."
+    : `띄우기를 누르면 ${stayText(sec)} 동안 화면에 떠 있어요.`)
+    + ` (참여자가 바로 보낸 메시지는 기본 ${lifetimeLabel()})`;
 }
 $("stay-seg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
   stayChoice = b.dataset.stay;
@@ -364,10 +455,44 @@ $("stay-seg").querySelectorAll("button").forEach((b) => b.addEventListener("clic
 }));
 renderStay();
 
-async function showAgain(ref) {
+// 공지는 화면에 한 번에 하나만 떠요. 새 공지를 띄우면 떠 있던 공지는 함께 내려요
+function hideOtherNotices(batch, exceptId) {
+  let n = 0;
+  rows.forEach((m) => {
+    if (m.notice === true && m.status === "live" && m.id !== exceptId) {
+      batch.update(doc(db, COL, m.id), { status: "hidden" });
+      n++;
+    }
+  });
+  return n;
+}
+
+async function showAgain(ref, m) {
   const sec = staySeconds();
-  await updateDoc(ref, { status: "live", liveAt: serverTimestamp(), stay: sec });
-  toast(sec === 0 ? "화면에 고정했어요. 내릴 때는 숨기기를 누르세요" : `${stayText(sec)} 동안 화면에 띄웠어요`);
+  const batch = writeBatch(db);
+  const replaced = m && m.notice === true ? hideOtherNotices(batch, m.id) : 0;
+  batch.update(ref, { status: "live", liveAt: serverTimestamp(), stay: sec });
+  await batch.commit();
+  const tail = replaced ? " 앞의 공지는 내렸어요." : "";
+  toast((sec === 0 ? "화면에 고정했어요. 내릴 때는 숨기기를 누르세요." : `${stayText(sec)} 동안 화면에 띄웠어요.`) + tail);
+}
+
+// ---------- 운영진 글 만들기 (쪽지 / 공지 / 질의응답) ----------
+async function createStaffDoc({ text, name, kind, type, show, sourceId }) {
+  const msgRef = doc(collection(db, COL));
+  const logRef = doc(collection(db, LOG_COL));
+  const sec = staySeconds();
+  const data = { text, name: name || STAFF_NAME, color: "cream", status: show ? "live" : "pending", createdAt: serverTimestamp(), byStaff: true };
+  if (kind) data.kind = kind;
+  if (type === "notice" || type === "qna") Object.assign(data, { notice: true, noticeColor: "blue", noticeType: type === "qna" ? "qna" : "general" });
+  if (sourceId) data.sourceId = sourceId;
+  if (show) Object.assign(data, { liveAt: serverTimestamp(), stay: sec });
+  const batch = writeBatch(db);
+  const replaced = show && data.notice ? hideOtherNotices(batch, null) : 0;
+  batch.set(msgRef, data);
+  batch.set(logRef, { msgId: msgRef.id, action: "write", before: "", after: text, by: currentEmail, at: serverTimestamp() });
+  await batch.commit();
+  return { sec, replaced };
 }
 
 // ---------- 화면 문구 수정 (원문은 그대로, 이력은 따로) ----------
@@ -383,6 +508,7 @@ function openEditor(id) {
   $("edit-orig").textContent = m.text || "";
   editText.value = currentShown(m);
   $("edit-err").hidden = true;
+  $("edit-qna-box").hidden = m.notice === true; // 공지 자체는 질의응답으로 다시 만들 필요가 없어요
   syncEditCount();
   modal.hidden = false;
   editText.focus();
@@ -396,6 +522,14 @@ $("edit-restore").addEventListener("click", () => {
   const m = rowById(editingId);
   if (m) { editText.value = m.text || ""; syncEditCount(); editText.focus(); }
 });
+function editError(e) {
+  console.error(e);
+  $("edit-err").textContent = e && e.code === "permission-denied"
+    ? "저장하지 못했어요. 다른 운영진이 방금 같은 메시지를 고쳤거나, 최신 보안 규칙이 게시되지 않았어요. 창을 닫았다가 다시 시도해 주세요."
+    : "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
+  $("edit-err").hidden = false;
+}
+const editBtns = () => [$("edit-save"), $("edit-save-show"), $("edit-qna")];
 
 async function saveEdit(alsoShow) {
   const m = rowById(editingId);
@@ -403,12 +537,11 @@ async function saveEdit(alsoShow) {
   const after = editText.value.trim().slice(0, SHOW_MAX);
   const before = currentShown(m);
   if (!after) { $("edit-err").textContent = "문구를 입력해 주세요."; $("edit-err").hidden = false; return; }
-  const btns = [$("edit-save"), $("edit-save-show")];
-  btns.forEach((x) => { x.disabled = true; });
+  editBtns().forEach((x) => { x.disabled = true; });
   try {
     const msgRef = doc(db, COL, m.id);
     if (after === before) {
-      if (alsoShow) await showAgain(msgRef); else toast("바뀐 내용이 없어요");
+      if (alsoShow) await showAgain(msgRef, m); else toast("바뀐 내용이 없어요");
       closeEditor();
       return;
     }
@@ -417,6 +550,7 @@ async function saveEdit(alsoShow) {
     const patch = { shownText: after, edits: (Number(m.edits) || 0) + 1, editedAt: serverTimestamp(), editedBy: currentEmail, lastEditId: logRef.id };
     if (alsoShow) Object.assign(patch, { status: "live", liveAt: serverTimestamp(), stay: sec });
     const batch = writeBatch(db);
+    if (alsoShow && m.notice === true) hideOtherNotices(batch, m.id);
     batch.set(logRef, { msgId: m.id, action: "edit", before, after, by: currentEmail, at: serverTimestamp() });
     batch.update(msgRef, patch);
     await batch.commit();
@@ -425,25 +559,76 @@ async function saveEdit(alsoShow) {
       ? (sec === 0 ? "고쳐서 화면에 고정했어요" : `고쳐서 ${stayText(sec)} 동안 띄웠어요`)
       : "화면 문구를 고쳤어요. 원문과 수정 이력은 그대로 남아요");
   } catch (e) {
-    console.error(e);
-    $("edit-err").textContent = e && e.code === "permission-denied"
-      ? "저장하지 못했어요. 다른 운영진이 방금 같은 메시지를 고쳤거나, 최신 보안 규칙이 게시되지 않았어요. 창을 닫았다가 다시 시도해 주세요."
-      : "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
-    $("edit-err").hidden = false;
+    editError(e);
   } finally {
-    btns.forEach((x) => { x.disabled = false; });
+    editBtns().forEach((x) => { x.disabled = false; });
   }
 }
 $("edit-save").addEventListener("click", () => saveEdit(false));
 $("edit-save-show").addEventListener("click", () => saveEdit(true));
 
-// ---------- 운영진이 직접 쓰기 ----------
+// 참여자 질문을 'Q.' 질의응답 공지로 띄우기 (새 공지를 만들고, 원래 메시지는 그대로 둬요)
+$("edit-qna").addEventListener("click", async () => {
+  const m = rowById(editingId);
+  if (!m) { closeEditor(); return; }
+  const text = editText.value.trim().slice(0, SHOW_MAX);
+  if (!text) { $("edit-err").textContent = "문구를 입력해 주세요."; $("edit-err").hidden = false; return; }
+  editBtns().forEach((x) => { x.disabled = true; });
+  try {
+    const { sec, replaced } = await createStaffDoc({ text, kind: m.kind || "", type: "qna", show: true, sourceId: m.id });
+    closeEditor();
+    toast((sec === 0 ? "Q. 질의응답을 화면에 고정했어요. 내릴 때는 숨기기를 누르세요." : `Q. 질의응답을 ${stayText(sec)} 동안 띄웠어요.`)
+      + (replaced ? " 앞의 공지는 내렸어요." : ""), 4500);
+  } catch (e) {
+    editError(e);
+  } finally {
+    editBtns().forEach((x) => { x.disabled = false; });
+  }
+});
+
+// ---------- 운영진 글쓰기 ----------
 const cText = $("c-text"), cName = $("c-name"), cKind = $("c-kind");
+cName.value = STAFF_NAME;
 if (KINDS.length) {
   cKind.append(new Option("종류 없음", ""));
   KINDS.forEach((k) => cKind.append(new Option(k, k)));
-  cKind.hidden = false;
 }
+const TYPE_TEXT = {
+  note: {
+    show: "바로 띄우기",
+    hint: "",
+    placeholder: "예: 오늘 함께해 주셔서 감사합니다",
+    help: "다른 메시지처럼 쪽지로 떠다녀요. 대기에 넣으면 '확인 대기'에 있다가 원할 때 띄울 수 있어요."
+  },
+  notice: {
+    show: "공지 띄우기",
+    hint: "파란 배경으로 화면을 가득 채워요",
+    placeholder: "예: 잠시 후 설명회가 시작됩니다. 자리에 앉아 주세요",
+    help: "공지가 떠 있는 동안 QR은 숨고, 다른 메시지는 투명하게 뒤에서 떠다녀요. 보통 '고정'으로 띄웠다가 끝나면 숨기기를 누르세요."
+  },
+  qna: {
+    show: "Q. 질의응답 띄우기",
+    hint: "화면에는 앞에 'Q.'가 붙어요",
+    placeholder: "예: 내년 외래 진료 공간 확장 계획이 궁금합니다",
+    help: "질문을 'Q.'와 함께 전체 화면 공지로 띄워요. 참여자가 보낸 질문은 메시지 목록의 수정 → 'Q. 질의응답으로 띄우기'로 바로 올릴 수 있어요."
+  }
+};
+let cType = "note";
+function setType(t) {
+  cType = t;
+  $("c-type").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.type === t)));
+  const x = TYPE_TEXT[t];
+  $("c-show").textContent = x.show;
+  $("c-show").classList.toggle("blue", t !== "note");
+  $("c-show").classList.toggle("primary", t === "note");
+  $("c-hint").textContent = x.hint;
+  cText.placeholder = x.placeholder;
+  $("c-help").textContent = x.help;
+  $("c-kind-wrap").hidden = !KINDS.length || t !== "note";
+}
+$("c-type").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => setType(b.dataset.type)));
+setType("note");
+
 function syncCompose() {
   $("c-count").textContent = `${cText.value.length}/${SHOW_MAX}`;
   const empty = !cText.value.trim();
@@ -452,62 +637,25 @@ function syncCompose() {
 }
 cText.addEventListener("input", syncCompose);
 
-// 전체 화면 공지 옵션
-const cNotice = $("c-notice");
-let noticeColor = "blue"; // 기본은 항상 삼성 블루
-NOTICE_COLORS.forEach((c) => {
-  const input = document.createElement("input");
-  input.type = "radio"; input.name = "notice-color"; input.id = "nc-" + c; input.value = c;
-  input.checked = c === noticeColor;
-  input.addEventListener("change", () => { noticeColor = c; });
-  const label = document.createElement("label");
-  label.htmlFor = input.id;
-  const dot = document.createElement("i");
-  dot.style.setProperty("--sw", `var(--notice-${c})`);
-  label.append(dot, document.createTextNode(NOTICE_NAMES[c]));
-  $("c-colors").append(input, label);
-});
-function syncNotice() {
-  const on = cNotice.checked;
-  $("c-colors").hidden = !on;
-  $("c-show").textContent = on ? "공지로 띄우기" : "바로 띄우기";
-  $("c-help").textContent = on
-    ? "공지는 고른 배경색으로 화면을 가득 채우고, 그동안 다른 메시지는 투명하게 뒤에서 떠다녀요. 보통 '고정'으로 띄웠다가 끝나면 숨기기를 누르면 편해요."
-    : "바로 띄우기는 위에서 고른 머무는 시간이 적용돼요. 대기에 넣으면 '확인 기다리는 메시지'에 있다가 원할 때 띄울 수 있어요.";
-}
-cNotice.addEventListener("change", syncNotice);
-syncNotice();
-
 async function staffWrite(show) {
   const text = cText.value.trim().slice(0, SHOW_MAX);
   if (!text) return;
-  const name = cName.value.trim().slice(0, 12) || "운영진";
-  const kind = KINDS.length ? cKind.value : "";
-  const msgRef = doc(collection(db, COL));
-  const logRef = doc(collection(db, LOG_COL));
-  const sec = staySeconds();
-  const data = { text, name, color: "cream", status: show ? "live" : "pending", createdAt: serverTimestamp(), byStaff: true };
-  if (kind) data.kind = kind;
-  if (cNotice.checked) Object.assign(data, { notice: true, noticeColor });
-  if (show) Object.assign(data, { liveAt: serverTimestamp(), stay: sec });
-  const batch = writeBatch(db);
-  batch.set(msgRef, data);
-  batch.set(logRef, { msgId: msgRef.id, action: "write", before: "", after: text, by: currentEmail, at: serverTimestamp() });
+  const type = cType;
   $("c-show").disabled = true;
   $("c-queue").disabled = true;
   try {
-    await batch.commit();
+    const { sec, replaced } = await createStaffDoc({
+      text,
+      name: cName.value.trim().slice(0, 12) || STAFF_NAME,
+      kind: type === "note" && KINDS.length ? cKind.value : "",
+      type, show
+    });
     cText.value = "";
-    if (cNotice.checked) { // 다음 글이 실수로 공지가 되지 않게, 색도 삼성 블루로 되돌려요
-      cNotice.checked = false;
-      noticeColor = "blue";
-      $("nc-blue").checked = true;
-      syncNotice();
-    }
-    const pre = data.notice ? "공지를 " : "";
+    if (type !== "note") setType("note"); // 다음 글이 실수로 공지가 되지 않게 쪽지로 되돌려요
+    const pre = type === "qna" ? "Q. 질의응답을 " : type === "notice" ? "공지를 " : "";
     toast(show
-      ? (sec === 0 ? `${pre}화면에 고정했어요. 내릴 때는 숨기기를 누르세요` : `${pre}${stayText(sec)} 동안 화면에 띄웠어요`)
-      : "대기 목록에 넣었어요. 원할 때 띄우기를 누르세요");
+      ? (sec === 0 ? `${pre}화면에 고정했어요. 내릴 때는 숨기기를 누르세요.` : `${pre}${stayText(sec)} 동안 화면에 띄웠어요.`) + (replaced ? " 앞의 공지는 내렸어요." : "")
+      : "확인 대기에 넣었어요. 원할 때 띄우기를 누르세요");
   } catch (e) { explain(e); }
   syncCompose();
 }
@@ -516,31 +664,25 @@ $("c-queue").addEventListener("click", () => staffWrite(false));
 syncCompose();
 
 // ---------- 수정 이력 ----------
-let logs = [];
+function logLabel(l) {
+  if (l.action !== "write") return "문구 수정";
+  const m = rowById(l.msgId);
+  if (m && m.noticeType === "qna") return "질의응답 작성";
+  if (m && m.notice) return "공지 작성";
+  return "직접 작성";
+}
 function renderLogs() {
   $("log-list").replaceChildren(...logs.slice(0, 100).map((l) => {
-    const li = document.createElement("li");
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    const b = document.createElement("b");
-    b.textContent = l.action === "write" ? "직접 작성" : "문구 수정";
-    meta.append(b, document.createTextNode(` · ${timeText(l.at)} · ${whoText(l.by)}`));
+    const li = el("li");
+    const meta = el("div", "meta");
+    meta.append(el("b", "", logLabel(l)), document.createTextNode(` · ${timeText(l.at)} · ${whoText(l.by)}`));
     li.append(meta);
-    if (l.before) {
-      const pb = document.createElement("p");
-      pb.className = "before";
-      pb.textContent = l.before;
-      li.append(pb);
-    }
-    const pa = document.createElement("p");
-    pa.className = "after";
-    pa.textContent = l.after || "";
-    li.append(pa);
+    if (l.before) li.append(el("p", "before", l.before));
+    li.append(el("p", "after", l.after || ""));
     return li;
   }));
   $("log-empty").hidden = logs.length > 0;
   $("n-log").textContent = logs.length;
-  $("n-log").classList.toggle("zero", logs.length === 0);
 }
 
 // 지금 화면에 떠 있는지 (대략)
@@ -557,74 +699,41 @@ function liveState(m) {
 }
 
 function rowEl(m) {
-  const li = document.createElement("li");
-  li.className = "row";
+  const li = el("li", "row");
   li.dataset.status = m.status;
-  if (m.status !== "hidden") li.style.setProperty("--c", `var(--note-${COLORS.includes(m.color) ? m.color : "cream"})`);
-  const main = document.createElement("div");
-  const p = document.createElement("p");
-  p.className = "row-text";
-  const shown = typeof m.shownText === "string" && m.shownText ? m.shownText : m.text || "";
-  p.textContent = shown;
-  const meta = document.createElement("p");
-  meta.className = "row-meta";
-  const pill = document.createElement("span");
-  pill.className = "pill";
+  const ki = kindIndex(m.kind);
+  const kc = ki >= 0 && ki < 3 ? ` k${ki}` : "";
+  li.style.setProperty("--stripe", m.notice ? "var(--samsung-blue)" : kc ? `var(--kind-${ki}-line)` : "rgba(29,39,49,.22)");
+
+  const main = el("div");
+  const shown = currentShown(m);
+  const p = el("p", "row-text");
+  if (m.noticeType === "qna") p.append(el("b", "q", "Q."));
+  p.append(document.createTextNode(shown));
+
+  const meta = el("p", "row-meta");
   if (m.status === "live") {
     const st = liveState(m);
-    pill.classList.add(st.cls);
-    pill.textContent = st.text;
+    meta.append(el("span", "pill " + st.cls, st.text));
   } else {
-    pill.textContent = m.status === "hidden" ? "숨김" : "대기";
+    meta.append(el("span", "pill " + (m.status === "hidden" ? "off" : "wait"), m.status === "hidden" ? "숨김" : "대기"));
   }
-  const who = document.createElement("span");
-  who.textContent = m.name || "익명";
-  const when = document.createElement("span");
-  when.textContent = timeText(m.createdAt);
-  meta.append(pill);
-  if (m.kind) {
-    const k = document.createElement("span");
-    k.className = "pill kind";
-    k.textContent = m.kind;
-    meta.append(k);
-  }
-  if (m.notice) {
-    const nt = document.createElement("span");
-    nt.className = "pill notice";
-    const dot = document.createElement("i");
-    dot.style.setProperty("--sw", `var(--notice-${NOTICE_COLORS.includes(m.noticeColor) ? m.noticeColor : "blue"})`);
-    nt.append(dot, document.createTextNode("전체 화면 공지"));
-    meta.append(nt);
-  } else if (m.byStaff) {
-    const st = document.createElement("span");
-    st.className = "pill staff";
-    st.textContent = "운영진 작성";
-    meta.append(st);
-  }
-  if (m.edits > 0) {
-    const ed = document.createElement("span");
-    ed.className = "pill edited";
-    ed.textContent = `수정됨 ${m.edits}`;
-    meta.append(ed);
-  }
-  meta.append(who, when);
+  if (m.kind) meta.append(el("span", "pill kind" + kc, m.kind));
+  if (m.notice) meta.append(el("span", "pill notice", m.noticeType === "qna" ? "질의응답 공지" : "전체 화면 공지"));
+  else if (m.byStaff) meta.append(el("span", "pill staff", "운영진 작성"));
+  if (m.edits > 0) meta.append(el("span", "pill edited", `수정됨 ${m.edits}`));
+  meta.append(el("span", "by", `${m.name || "익명"} · ${timeText(m.createdAt)}`));
   main.append(p, meta);
   if (shown !== (m.text || "")) {
-    const o = document.createElement("p");
-    o.className = "row-orig";
-    const b = document.createElement("b");
-    b.textContent = "원문 ";
-    o.append(b, document.createTextNode(m.text || ""));
+    const o = el("p", "row-orig");
+    o.append(el("b", "", "원문 "), document.createTextNode(m.text || ""));
     main.append(o);
   }
 
-  const acts = document.createElement("div");
-  acts.className = "row-actions";
+  const acts = el("div", "row-actions");
   const btn = (label, cls, fn) => {
-    const b = document.createElement("button");
+    const b = el("button", "mini" + (cls ? " " + cls : ""), label);
     b.type = "button";
-    b.className = "mini" + (cls ? " " + cls : "");
-    b.textContent = label;
     b.addEventListener("click", async () => {
       b.disabled = true;
       try { await fn(); } catch (e) { explain(e); } finally { b.disabled = false; }
@@ -633,15 +742,15 @@ function rowEl(m) {
   };
   const ref = doc(db, COL, m.id);
   if (m.status === "pending") {
-    btn("띄우기", "go", () => showAgain(ref));
+    btn("띄우기", "go", () => showAgain(ref, m));
     btn("수정", "", async () => openEditor(m.id));
     btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
   } else if (m.status === "live") {
-    btn("다시 띄우기", "", () => showAgain(ref));
+    btn("다시 띄우기", "", () => showAgain(ref, m));
     btn("수정", "", async () => openEditor(m.id));
     btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
   } else {
-    btn("다시 띄우기", "", () => showAgain(ref));
+    btn("다시 띄우기", "", () => showAgain(ref, m));
     btn("수정", "", async () => openEditor(m.id));
   }
   li.append(main, acts);
@@ -652,9 +761,15 @@ let filter = "";
 if (KINDS.length) {
   const box = $("filters");
   const make = (label, value) => {
-    const b = document.createElement("button");
+    const b = el("button");
     b.type = "button";
-    b.textContent = label;
+    const ki = kindIndex(value);
+    if (ki >= 0 && ki < 3) {
+      const dot = el("i");
+      dot.style.setProperty("--dot", `var(--kind-${ki}-line)`);
+      b.append(dot);
+    }
+    b.append(document.createTextNode(label));
     b.setAttribute("aria-pressed", String(value === filter));
     b.addEventListener("click", () => {
       filter = value;
@@ -665,21 +780,20 @@ if (KINDS.length) {
   };
   make("전체", "");
   KINDS.forEach((k) => make(k, k));
-  box.hidden = false;
 }
+setTab(tab);
 
 function render() {
   const shown = filter ? rows.filter((m) => m.kind === filter) : rows;
   const pending = shown.filter((m) => m.status === "pending").reverse(); // 먼저 온 것부터
   const recent = shown.filter((m) => m.status !== "pending");
   $("pending-list").replaceChildren(...pending.map(rowEl));
-  $("recent-list").replaceChildren(...recent.slice(0, 120).map(rowEl));
+  $("recent-list").replaceChildren(...recent.slice(0, 150).map(rowEl));
   $("pending-empty").hidden = pending.length > 0;
   $("recent-empty").hidden = recent.length > 0;
-  $("pending-panel").hidden = !moderation && pending.length === 0;
-  const setN = (id, n) => { $(id).textContent = n; $(id).classList.toggle("zero", n === 0); };
-  setN("n-pending", pending.length);
-  setN("n-recent", recent.length);
+  $("n-pending").textContent = pending.length;
+  $("n-pending").classList.toggle("hot", pending.length > 0);
+  $("n-recent").textContent = recent.length;
   $("s-pending").textContent = rows.filter((m) => m.status === "pending").length;
   $("s-live").textContent = rows.filter((m) => m.status === "live").length;
   $("s-hidden").textContent = rows.filter((m) => m.status === "hidden").length;
@@ -696,15 +810,16 @@ function renderMode() {
   $("mode-live").setAttribute("aria-pressed", String(!moderation));
   $("mode-mod").setAttribute("aria-pressed", String(moderation));
   $("mode-help").textContent = moderation
-    ? "보낸 메시지가 '확인 기다리는 메시지'에 모여요. 띄우기를 눌러야 월 화면에 떠요."
-    : "보내는 즉시 월 화면에 떠요. 이상한 메시지는 숨기기로 내리면 돼요.";
+    ? "참여자 메시지는 '확인 대기'에 모이고, 띄우기를 눌러야 화면에 떠요."
+    : "참여자가 보내는 즉시 화면에 떠요. 이상한 메시지는 숨기기로 내리세요.";
 }
 
 async function setMode(on) {
-  if (on === moderation) return;
+  if (on === moderation) { setTab(on ? "pending" : "recent"); return; }
   try {
     await setDoc(doc(db, "config", CFG_DOC), { moderation: on });
-    toast(on ? "이제 확인한 메시지만 월 화면에 떠요" : "이제 보내는 즉시 월 화면에 떠요");
+    setTab(on ? "pending" : "recent");
+    toast(on ? "이제 확인한 메시지만 화면에 떠요" : "이제 보내는 즉시 화면에 떠요");
   } catch (e) { explain(e); }
 }
 $("mode-live").addEventListener("click", () => setMode(false));
@@ -714,25 +829,26 @@ $("mode-mod").addEventListener("click", () => setMode(true));
 const esc = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`;
 const fmtTime = (ts) => (ts && ts.toDate ? ts.toDate().toLocaleString("ko-KR", { hour12: false }) : "");
 function downloadCsv(lines, name) {
-  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `${EVENT.title || "메시지월"}-${name}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+const writerLabel = (m) => m.noticeType === "qna" ? "운영진 질의응답 공지" : m.notice ? "운영진 공지" : m.byStaff ? "운영진" : "참여자";
 $("export").addEventListener("click", async () => {
   try {
     const snap = await getDocs(query(collection(db, COL), orderBy("createdAt", "asc")));
     const label = { live: "띄움", hidden: "숨김", pending: "대기" };
-    const head = ["보낸 시각", "작성", ...(KINDS.length ? ["종류"] : []), "이름", "원문", "화면 문구", "수정 횟수", "상태", "메시지 ID"];
+    const head = ["보낸 시각", "작성", ...(KINDS.length ? ["종류"] : []), "이름", "원문", "화면 문구", "수정 횟수", "상태", "메시지 ID", "원래 메시지 ID"];
     const lines = [head.map(esc).join(",")];
     snap.forEach((d) => {
       const m = d.data();
       const shown = typeof m.shownText === "string" && m.shownText ? m.shownText : m.text;
       lines.push([
-        fmtTime(m.createdAt), m.notice ? "운영진 공지" : m.byStaff ? "운영진" : "참여자", ...(KINDS.length ? [m.kind] : []),
-        m.name, m.text, shown, Number(m.edits) || 0, label[m.status] || m.status, d.id
+        fmtTime(m.createdAt), writerLabel(m), ...(KINDS.length ? [m.kind] : []),
+        m.name, m.text, m.noticeType === "qna" ? `Q. ${shown}` : shown, Number(m.edits) || 0, label[m.status] || m.status, d.id, m.sourceId || ""
       ].map(esc).join(","));
     });
     downloadCsv(lines, "메시지");
@@ -745,7 +861,7 @@ $("log-export").addEventListener("click", async () => {
     const lines = [["시각", "구분", "운영진", "바꾸기 전", "바꾼 후", "메시지 ID"].map(esc).join(",")];
     snap.forEach((d) => {
       const l = d.data();
-      lines.push([fmtTime(l.at), l.action === "write" ? "직접 작성" : "문구 수정", whoText(l.by), l.before, l.after, l.msgId].map(esc).join(","));
+      lines.push([fmtTime(l.at), logLabel(l), whoText(l.by), l.before, l.after, l.msgId].map(esc).join(","));
     });
     downloadCsv(lines, "수정이력");
     toast(`수정 이력 ${snap.size}건을 내려받았어요`);
@@ -784,9 +900,11 @@ let unsubs = [];
 function stopListening() { unsubs.forEach((u) => u()); unsubs = []; }
 function startListening() {
   stopListening();
+  tabChosen = false;
   unsubs.push(onSnapshot(query(collection(db, COL), orderBy("createdAt", "desc"), limit(300)), (snap) => {
     rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     render();
+    renderLogs();
   }, explain));
   unsubs.push(onSnapshot(query(collection(db, LOG_COL), orderBy("at", "desc"), limit(200)), (snap) => {
     logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -794,6 +912,7 @@ function startListening() {
   }, explain));
   unsubs.push(onSnapshot(doc(db, "config", CFG_DOC), (snap) => {
     moderation = moderationFrom(snap);
+    if (!tabChosen) { tabChosen = true; setTab(moderation ? "pending" : "recent"); }
     renderMode();
     render();
   }, explain));
