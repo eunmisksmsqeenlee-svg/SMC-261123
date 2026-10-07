@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>메시지월 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="common.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+/* 관리 화면: 왼쪽은 메시지 흐름(대기 → 최근), 오른쪽은 운영 도구. 좁으면 한 줄로 */
+body{min-height:100vh;background:var(--sky-bg)}
+.wrap{
+  max-width:1120px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px);
+  display:grid;gap:20px;
+}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.top h1{margin:6px 0 0;font:700 28px/1.2 var(--f-display)}
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:10px;color:var(--mist);font-size:13px}
+.who b{color:var(--paper);font-weight:500;overflow-wrap:anywhere}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+.col{display:grid;gap:20px;min-width:0}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.side{order:-1}}
+
+.panel{background:var(--dock);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.panel h2{margin:0;font:600 15px/1.3 var(--f-ui);display:flex;align-items:center;gap:8px}
+.panel h2 .n{font:600 12px/1 var(--f-ui);color:var(--ink);background:var(--glow);border-radius:999px;padding:4px 8px;font-variant-numeric:tabular-nums}
+.panel h2 .n.zero{background:var(--hover);color:var(--mist)}
+.panel p.help{margin:0;color:var(--mist);font-size:13px;line-height:1.55}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--night-deep);border:1px solid var(--line);border-radius:11px}
+.seg button{border:0;border-radius:8px;padding:11px 8px;background:transparent;color:var(--mist);font:500 14px/1.2 var(--f-ui);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--night-deep);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
+.stat span{font-size:12px;color:var(--mist)}
+.stat b{font:600 22px/1 var(--f-ui);font-variant-numeric:tabular-nums}
+
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+  background:var(--c,var(--note-cream));color:var(--ink);border-radius:8px;padding:12px 12px 12px 14px;
+}
+.row[data-status="hidden"]{background:transparent;color:var(--mist);border:1px dashed var(--line)}
+.row-text{margin:0;font:700 20px/1.3 var(--f-note);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.row-meta{margin:4px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font:500 12px/1.3 var(--f-ui);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.row[data-status="hidden"] .row-meta{color:var(--mist)}
+.pill{font:600 11px/1 var(--f-ui);border-radius:999px;padding:4px 7px;background:rgba(29,39,49,.1)}
+.row[data-status="live"] .pill{background:var(--ink);color:var(--paper)}
+.row[data-status="hidden"] .pill{background:var(--hover);color:var(--mist)}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mini{border:1px solid rgba(29,39,49,.25);background:transparent;color:var(--ink);border-radius:8px;padding:8px 10px;font:600 13px/1 var(--f-ui);cursor:pointer;white-space:nowrap}
+.mini:hover{background:rgba(29,39,49,.08)}
+.mini.go{background:var(--ink);color:var(--paper);border-color:transparent}
+.row[data-status="hidden"] .mini{color:var(--paper);border-color:var(--line)}
+.row[data-status="hidden"] .mini:hover{background:var(--hover)}
+.mini:disabled{opacity:.4;cursor:default}
+.empty{margin:0;padding:18px;text-align:center;color:var(--mist);font-size:14px;border:1px dashed var(--line);border-radius:10px}
+
+.link-box{display:flex;gap:8px;align-items:stretch}
+.link-box input{flex:1;min-width:0;background:var(--night-deep);color:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:500 13px/1.2 ui-monospace,Menlo,Consolas,monospace}
+.qr-wrap{display:grid;justify-items:center;gap:10px;padding:14px;background:var(--paper);border-radius:12px}
+.qr-wrap canvas{width:min(220px,100%);height:auto;aspect-ratio:1;display:block}
+.qr-wrap span{color:var(--ink);font:600 13px/1.3 var(--f-ui)}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px}
+.btn.danger{color:var(--danger);border-color:rgba(232,144,127,.45)}
+.btn.danger.armed{background:var(--danger);color:var(--ink);border-color:transparent;font-weight:600}
+
+.login{max-width:440px;justify-self:center;width:100%}
+.google{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border-radius:11px;border:0;background:var(--paper);color:var(--ink);font:600 15px/1 var(--f-ui);cursor:pointer}
+.google:hover{background:#fff}
+.err{margin:0;color:var(--danger);font-size:14px;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
+      <h1>메시지월 관리</h1>
+    </div>
+    <div class="who" id="who" hidden>
+      <span><b id="who-email"></b> 로그인됨</span>
+      <button class="btn" type="button" id="logout">로그아웃</button>
+    </div>
+  </header>
+
+  <section class="panel login" id="login" hidden>
+    <h2>운영진 로그인</h2>
+    <p class="help">보안 규칙에 등록된 구글 계정만 메시지를 숨기거나 띄울 수 있어요.</p>
+    <button class="google" type="button" id="login-btn">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      구글 계정으로 로그인
+    </button>
+    <p class="err" id="login-err" role="alert" hidden></p>
+  </section>
+
+  <div class="setup" id="setup" hidden>
+    <h2>설정이 필요해요</h2>
+    <p><code>config.js</code> 파일에 Firebase 설정을 붙여넣으면 관리 화면이 열려요.</p>
+  </div>
+
+  <div class="grid" id="dash" hidden>
+    <div class="col">
+      <section class="panel" id="pending-panel">
+        <h2>확인 기다리는 메시지 <span class="n zero" id="n-pending">0</span></h2>
+        <ul class="list" id="pending-list"></ul>
+        <p class="empty" id="pending-empty">기다리는 메시지가 없어요</p>
+      </section>
+
+      <section class="panel">
+        <h2>최근 메시지 <span class="n zero" id="n-recent">0</span></h2>
+        <p class="help">숨기기를 누르면 월 화면에서 바로 사라져요. 다시 띄우면 처음부터 다시 떠올라요.</p>
+        <ul class="list" id="recent-list"></ul>
+        <p class="empty" id="recent-empty">아직 메시지가 없어요</p>
+      </section>
+    </div>
+
+    <div class="col side">
+      <section class="panel">
+        <h2>띄우는 방식</h2>
+        <div class="seg" role="group" aria-label="띄우는 방식">
+          <button type="button" id="mode-live" aria-pressed="true">바로 띄우기</button>
+          <button type="button" id="mode-mod" aria-pressed="false">확인 후 띄우기</button>
+        </div>
+        <p class="help" id="mode-help">보내는 즉시 월 화면에 떠요. 이상한 메시지는 숨기기로 내리면 돼요.</p>
+        <div class="stats">
+          <div class="stat"><span>대기</span><b id="s-pending">0</b></div>
+          <div class="stat"><span>띄움</span><b id="s-live">0</b></div>
+          <div class="stat"><span>숨김</span><b id="s-hidden">0</b></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>참여 링크와 QR</h2>
+        <div class="link-box">
+          <input id="link" type="text" readonly aria-label="참여 링크">
+          <button class="btn" type="button" id="copy">복사</button>
+        </div>
+        <div class="qr-wrap">
+          <canvas id="qr" aria-label="참여 QR 코드"></canvas>
+          <span>테이블·포스터용 QR</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn" type="button" id="qr-save">QR 이미지 저장</button>
+          <a class="btn primary" id="open-wall" href="wall.html" target="_blank" rel="noopener">월 화면 열기</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>정리</h2>
+        <p class="help">행사가 끝나면 메시지를 엑셀로 받아 두세요. 리허설 후에는 테스트 메시지를 지우고 시작하면 깔끔해요.</p>
+        <div class="btn-row">
+          <button class="btn" type="button" id="export">엑셀(CSV)로 내려받기</button>
+          <button class="btn danger" type="button" id="wipe">메시지 모두 지우기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module">
+import { EVENT } from "./config.js";
+import {
+  configured, app, db, SDK,
+  collection, doc, query, orderBy, limit, onSnapshot, updateDoc, setDoc, getDocs, writeBatch, serverTimestamp
+} from "./firebase.js";
+import { applyText, participantUrl, drawQR, makeToast, timeText } from "./shared.js";
+
+applyText();
+const $ = (id) => document.getElementById(id);
+const toast = makeToast($("toast"));
+const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
+
+let currentEmail = "";
+function explain(err) {
+  console.error(err);
+  if (err && err.code === "permission-denied") {
+    toast(`이 계정(${currentEmail})은 관리자 목록에 없어요. 보안 규칙의 관리자 메일을 확인해 주세요.`, 6000);
+  } else {
+    toast("처리하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.", 5000);
+  }
+}
+
+// ---------- 링크와 QR ----------
+const url = participantUrl();
+$("link").value = url;
+drawQR($("qr"), url, { pixels: 440 });
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(url); toast("참여 링크를 복사했어요"); }
+  catch { $("link").select(); toast("링크를 선택했어요. Ctrl+C로 복사해 주세요"); }
+});
+$("qr-save").addEventListener("click", () => {
+  const c = document.createElement("canvas");
+  if (!drawQR(c, url, { pixels: 1200, margin: 4, light: "#ffffff", dark: "#000000" })) { toast("QR을 만들지 못했어요. 새로고침해 주세요"); return; }
+  c.toBlob((blob) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "메시지월-QR.png";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+});
+
+// ---------- 메시지 목록 ----------
+let rows = [];
+let moderation = false;
+
+function rowEl(m) {
+  const li = document.createElement("li");
+  li.className = "row";
+  li.dataset.status = m.status;
+  if (m.status !== "hidden") li.style.setProperty("--c", `var(--note-${COLORS.includes(m.color) ? m.color : "cream"})`);
+  const main = document.createElement("div");
+  const p = document.createElement("p");
+  p.className = "row-text";
+  p.textContent = m.text || "";
+  const meta = document.createElement("p");
+  meta.className = "row-meta";
+  const pill = document.createElement("span");
+  pill.className = "pill";
+  pill.textContent = m.status === "live" ? "화면에 띄움" : m.status === "hidden" ? "숨김" : "대기";
+  const who = document.createElement("span");
+  who.textContent = m.name || "익명";
+  const when = document.createElement("span");
+  when.textContent = timeText(m.createdAt);
+  meta.append(pill, who, when);
+  main.append(p, meta);
+
+  const acts = document.createElement("div");
+  acts.className = "row-actions";
+  const btn = (label, cls, fn) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "mini" + (cls ? " " + cls : "");
+    b.textContent = label;
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try { await fn(); } catch (e) { explain(e); b.disabled = false; }
+    });
+    acts.append(b);
+  };
+  const ref = doc(db, "messages", m.id);
+  if (m.status === "pending") {
+    btn("띄우기", "go", () => updateDoc(ref, { status: "live", liveAt: serverTimestamp() }));
+    btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
+  } else if (m.status === "live") {
+    btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
+  } else {
+    btn("다시 띄우기", "", () => updateDoc(ref, { status: "live", liveAt: serverTimestamp() }));
+  }
+  li.append(main, acts);
+  return li;
+}
+
+function render() {
+  const pending = rows.filter((m) => m.status === "pending").reverse(); // 먼저 온 것부터
+  const recent = rows.filter((m) => m.status !== "pending");
+  $("pending-list").replaceChildren(...pending.map(rowEl));
+  $("recent-list").replaceChildren(...recent.slice(0, 120).map(rowEl));
+  $("pending-empty").hidden = pending.length > 0;
+  $("recent-empty").hidden = recent.length > 0;
+  $("pending-panel").hidden = !moderation && pending.length === 0;
+  const setN = (id, n) => { $(id).textContent = n; $(id).classList.toggle("zero", n === 0); };
+  setN("n-pending", pending.length);
+  setN("n-recent", recent.length);
+  $("s-pending").textContent = pending.length;
+  $("s-live").textContent = rows.filter((m) => m.status === "live").length;
+  $("s-hidden").textContent = rows.filter((m) => m.status === "hidden").length;
+}
+
+function renderMode() {
+  $("mode-live").setAttribute("aria-pressed", String(!moderation));
+  $("mode-mod").setAttribute("aria-pressed", String(moderation));
+  $("mode-help").textContent = moderation
+    ? "보낸 메시지가 '확인 기다리는 메시지'에 모여요. 띄우기를 눌러야 월 화면에 떠요."
+    : "보내는 즉시 월 화면에 떠요. 이상한 메시지는 숨기기로 내리면 돼요.";
+}
+
+async function setMode(on) {
+  if (on === moderation) return;
+  try {
+    await setDoc(doc(db, "config", "wall"), { moderation: on });
+    toast(on ? "이제 확인한 메시지만 월 화면에 떠요" : "이제 보내는 즉시 월 화면에 떠요");
+  } catch (e) { explain(e); }
+}
+$("mode-live").addEventListener("click", () => setMode(false));
+$("mode-mod").addEventListener("click", () => setMode(true));
+
+// ---------- 내려받기 / 지우기 ----------
+$("export").addEventListener("click", async () => {
+  try {
+    const snap = await getDocs(query(collection(db, "messages"), orderBy("createdAt", "asc")));
+    const esc = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+    const label = { live: "띄움", hidden: "숨김", pending: "대기" };
+    const lines = [["보낸 시각", "이름", "메시지", "상태"].map(esc).join(",")];
+    snap.forEach((d) => {
+      const m = d.data();
+      const t = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleString("ko-KR", { hour12: false }) : "";
+      lines.push([t, m.name, m.text, label[m.status] || m.status].map(esc).join(","));
+    });
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const day = new Date().toISOString().slice(0, 10);
+    a.download = `메시지월-${day}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast(`메시지 ${snap.size}개를 내려받았어요`);
+  } catch (e) { explain(e); }
+});
+
+const wipe = $("wipe");
+let armTimer = null;
+wipe.addEventListener("click", async () => {
+  if (!wipe.classList.contains("armed")) {
+    wipe.classList.add("armed");
+    wipe.textContent = "정말 지울까요? 한 번 더 누르기";
+    armTimer = setTimeout(() => { wipe.classList.remove("armed"); wipe.textContent = "메시지 모두 지우기"; }, 6000);
+    return;
+  }
+  clearTimeout(armTimer);
+  wipe.disabled = true;
+  wipe.textContent = "지우는 중…";
+  try {
+    const snap = await getDocs(collection(db, "messages"));
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 400) {
+      const b = writeBatch(db);
+      docs.slice(i, i + 400).forEach((d) => b.delete(d.ref));
+      await b.commit();
+    }
+    toast(`메시지 ${docs.length}개를 지웠어요`);
+  } catch (e) { explain(e); }
+  wipe.disabled = false;
+  wipe.classList.remove("armed");
+  wipe.textContent = "메시지 모두 지우기";
+});
+
+// ---------- 로그인 ----------
+let unsubs = [];
+function stopListening() { unsubs.forEach((u) => u()); unsubs = []; }
+function startListening() {
+  stopListening();
+  unsubs.push(onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(300)), (snap) => {
+    rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    render();
+  }, explain));
+  unsubs.push(onSnapshot(doc(db, "config", "wall"), (snap) => {
+    moderation = snap.exists() && snap.data().moderation === true;
+    renderMode();
+    render();
+  }, explain));
+}
+
+if (!configured) {
+  $("setup").hidden = false;
+} else {
+  const A = await import(SDK + "firebase-auth.js");
+  const auth = A.getAuth(app);
+  A.onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentEmail = user.email || "";
+      $("who-email").textContent = currentEmail;
+      $("who").hidden = false;
+      $("login").hidden = true;
+      $("dash").hidden = false;
+      startListening();
+    } else {
+      stopListening();
+      $("who").hidden = true;
+      $("dash").hidden = true;
+      $("login").hidden = false;
+    }
+  });
+  $("login-btn").addEventListener("click", async () => {
+    $("login-err").hidden = true;
+    try {
+      await A.signInWithPopup(auth, new A.GoogleAuthProvider());
+    } catch (e) {
+      const msg = {
+        "auth/unauthorized-domain": `이 주소(${location.hostname})가 아직 허용되지 않았어요. Firebase 콘솔 > Authentication > 설정 > 승인된 도메인에 추가해 주세요.`,
+        "auth/operation-not-allowed": "구글 로그인이 꺼져 있어요. Firebase 콘솔 > Authentication > 로그인 방법에서 Google을 사용 설정해 주세요.",
+        "auth/popup-blocked": "팝업이 막혔어요. 주소창 오른쪽에서 팝업을 허용하고 다시 눌러 주세요.",
+        "auth/popup-closed-by-user": "로그인 창이 닫혔어요. 다시 눌러 주세요."
+      }[e && e.code] || "로그인하지 못했어요. 잠시 후 다시 시도해 주세요.";
+      $("login-err").textContent = msg;
+      $("login-err").hidden = false;
+    }
+  });
+  $("logout").addEventListener("click", () => A.signOut(auth));
+}
+</script>
+</body>
+</html>
