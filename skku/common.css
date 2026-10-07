@@ -95,6 +95,20 @@ button{font:inherit}
 .setup p{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.6}
 .setup code{font:500 13px/1 ui-monospace,Menlo,Consolas,monospace;background:var(--field);border:1px solid var(--field-line);border-radius:5px;padding:2px 5px;color:var(--ink)}
 
+/* ---------- 전체 화면 공지 배경색 ---------- */
+:root{
+  --notice-blue:#1428a0;
+  --notice-amber:#f0b46a;
+  --notice-cream:#f6efe2;
+  --notice-green:#1d5c4d;
+  --notice-wine:#7a2738;
+}
+body[data-notice="blue"]{--nb:var(--notice-blue);--nt:#ffffff;--ghost:rgba(255,255,255,.2)}
+body[data-notice="amber"]{--nb:var(--notice-amber);--nt:var(--ink);--ghost:rgba(29,39,49,.3)}
+body[data-notice="cream"]{--nb:var(--notice-cream);--nt:var(--ink);--ghost:rgba(29,39,49,.28)}
+body[data-notice="green"]{--nb:var(--notice-green);--nt:#ffffff;--ghost:rgba(255,255,255,.2)}
+body[data-notice="wine"]{--nb:var(--notice-wine);--nt:#ffffff;--ghost:rgba(255,255,255,.2)}
+
 /* 메시지 종류 꼬리표 (응원 / 궁금한 점 …) */
 .kind-tag{
   display:inline-block;margin-bottom:.45em;

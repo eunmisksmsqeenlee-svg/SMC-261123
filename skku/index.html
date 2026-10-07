@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="common.css?v=20261007n">
 <style>
 /* 참여 화면: 폰 한 장 크기. 위는 밤하늘 제목, 아래는 종이 한 장 */
 body{min-height:100vh;min-height:100dvh;background:var(--sky-bg)}
@@ -142,9 +142,9 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
   }, 10000);
 </script>
 <script type="module">
-import { EVENT } from "./config.js";
-import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js";
-import { applyText, applyTheme, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js";
+import { EVENT } from "./config.js?v=20261007n";
+import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js?v=20261007n";
+import { applyText, applyTheme, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js?v=20261007n";
 
 window.__wallReady = true;
 applyTheme();

@@ -1,5 +1,5 @@
 // 세 화면이 같이 쓰는 도구 (고칠 필요 없어요)
-import { EVENT } from "./config.js";
+import { EVENT } from "./config.js?v=20261007n";
 
 export const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
 
@@ -8,6 +8,8 @@ export const COL = EVENT.collection || "messages";
 export const CFG_DOC = EVENT.configDoc || "wall";
 export const LOG_COL = COL + "_edits"; // 수정 이력 (지울 수 없어요)
 export const SHOW_MAX = 200;           // 화면에 띄울 수 있는 최대 글자 수 (운영진 작성·수정 포함)
+export const NOTICE_COLORS = ["blue", "amber", "cream", "green", "wine"];
+export const NOTICE_NAMES = { blue: "삼성 블루", amber: "주황", cream: "크림", green: "초록", wine: "와인" };
 export const KINDS = Array.isArray(EVENT.kinds) ? EVENT.kinds.filter((k) => typeof k === "string" && k.trim()) : [];
 
 // '확인 후 띄우기'가 켜져 있는지 (설정 문서가 없으면 config.js 기본값)
