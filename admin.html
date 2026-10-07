@@ -7,8 +7,8 @@
 <title>메시지월 관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css?v=20261007r">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="common.css?v=20261007t">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 /* 관리 화면
@@ -351,12 +351,12 @@ textarea.field-dark{resize:vertical;min-height:96px}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script type="module">
-import { EVENT } from "./config.js?v=20261007r";
+import { EVENT } from "./config.js?v=20261007t";
 import {
   configured, app, db, SDK,
   collection, doc, query, orderBy, limit, onSnapshot, updateDoc, setDoc, getDocs, writeBatch, serverTimestamp
-} from "./firebase.js?v=20261007r";
-import { applyText, applyTheme, participantUrl, drawQR, makeToast, timeText, lifetimeLabel, COL, CFG_DOC, LOG_COL, SHOW_MAX, KINDS, kindIndex, moderationFrom, OPERATOR_EMAIL, isOperator, authErrorText } from "./shared.js?v=20261007r";
+} from "./firebase.js?v=20261007t";
+import { applyText, applyTheme, participantUrl, drawQR, makeToast, timeText, lifetimeLabel, COL, CFG_DOC, LOG_COL, SHOW_MAX, KINDS, kindIndex, moderationFrom, OPERATOR_EMAIL, isOperator, authErrorText } from "./shared.js?v=20261007t";
 
 applyTheme();
 applyText();

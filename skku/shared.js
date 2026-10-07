@@ -1,5 +1,5 @@
 // 세 화면이 같이 쓰는 도구 (고칠 필요 없어요)
-import { EVENT } from "./config.js?v=20261007r";
+import { EVENT } from "./config.js?v=20261007t";
 
 export const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
 

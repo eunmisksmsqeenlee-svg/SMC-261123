@@ -6,13 +6,15 @@
 <title>올해의 한마디 · 메시지월</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="common.css?v=20261007r">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="common.css?v=20261007t">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 /* 대형 화면: 왼쪽 위 제목, 오른쪽 위 QR, 쪽지는 아래에서 떠올라 가운데에서 떠다녀요 */
 :root{--gutter:clamp(16px,3vw,48px)}
 html,body{height:100%;overflow:hidden}
+/* 큰 화면에서는 글자 위에 I자 커서나 깜빡이는 입력 커서가 생기지 않게 */
+body{cursor:default;-webkit-user-select:none;user-select:none;caret-color:transparent}
 body.idle,body.idle *{cursor:none}
 
 .stage{position:fixed;inset:0;overflow:hidden;background:var(--sky-bg)}
@@ -46,7 +48,7 @@ body.idle,body.idle *{cursor:none}
   font-size:clamp(14px,1.5vw,28px);padding:.45em .8em;border-radius:10px;
   box-shadow:0 0 0 1px var(--line),0 10px 30px var(--shadow);
 }
-.corner-logo img{height:1.9em;max-width:11em}
+.corner-logo img{height:3em;max-width:14em}
 .qr canvas{display:block;width:var(--qr-w,clamp(80px,9vw,170px));height:auto;aspect-ratio:1;max-width:100%}
 .qr span{font:600 var(--qr-label,clamp(10px,.8vw,15px))/1.2 var(--f-ui);color:var(--ink);letter-spacing:.04em}
 .qr .qr-fallback{max-width:var(--qr-w,clamp(80px,9vw,170px));font:500 11px/1.4 var(--f-ui);color:var(--ink);word-break:break-all;text-align:center}
@@ -85,6 +87,7 @@ body.idle,body.idle *{cursor:none}
   padding:0 18%;text-align:center;
   font:700 clamp(22px,2.4vw,44px)/1.3 var(--f-note);color:var(--mist);opacity:.6;
 }
+.theme-smc .empty{font-family:var(--f-brand);font-weight:600}
 
 /* 쪽지 */
 .card{position:absolute;width:clamp(150px,16vw,300px);transform:translate(-50%,-50%)}
@@ -243,9 +246,9 @@ body.fs .ctrl{display:none}
   }, 12000);
 </script>
 <script type="module">
-import { EVENT } from "./config.js?v=20261007r";
-import { configured, app, db, SDK, collection, query, where, orderBy, limit, onSnapshot, getCountFromServer } from "./firebase.js?v=20261007r";
-import { applyText, applyTheme, applyLogos, fill, participantUrl, drawQR, makeToast, COL, SHOW_MAX, NOTICE_COLORS, OPERATOR_EMAIL, authErrorText, kindIndex } from "./shared.js?v=20261007r";
+import { EVENT } from "./config.js?v=20261007t";
+import { configured, app, db, SDK, collection, query, where, orderBy, limit, onSnapshot, getCountFromServer } from "./firebase.js?v=20261007t";
+import { applyText, applyTheme, applyLogos, fill, participantUrl, drawQR, makeToast, COL, SHOW_MAX, NOTICE_COLORS, OPERATOR_EMAIL, authErrorText, kindIndex } from "./shared.js?v=20261007t";
 
 window.__wallReady = true;
 applyTheme();
@@ -547,6 +550,9 @@ fullBtn.addEventListener("click", toggleFull);
 document.addEventListener("fullscreenchange", () => {
   fullBtn.textContent = document.fullscreenElement ? "전체화면 끝내기" : "전체화면";
   body.classList.toggle("fs", Boolean(document.fullscreenElement)); // 전체화면에서는 조작 막대를 아예 숨겨요
+  if (document.activeElement && document.activeElement !== body) document.activeElement.blur();
+  window.getSelection && window.getSelection().removeAllRanges();
+  if (document.fullscreenElement) { clearTimeout(idleTimer); idleTimer = setTimeout(() => body.classList.add("idle"), 800); }
 });
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
