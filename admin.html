@@ -37,6 +37,11 @@ body{min-height:100vh;background:var(--sky-bg)}
 .seg button{border:0;border-radius:8px;padding:11px 8px;background:transparent;color:var(--mist);font:500 14px/1.2 var(--f-ui);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600}
 
+.seg.seg4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.seg.seg4 button{padding:11px 4px}
+.pill.on{background:var(--ink);color:var(--paper)}
+.pill.pin{background:var(--glow);color:var(--ink)}
+.pill.past{background:rgba(29,39,49,.1);color:var(--ink-soft)}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .stat{background:var(--night-deep);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:4px}
 .stat span{font-size:12px;color:var(--mist)}
@@ -52,7 +57,6 @@ body{min-height:100vh;background:var(--sky-bg)}
 .row-meta{margin:4px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font:500 12px/1.3 var(--f-ui);color:var(--ink-soft);font-variant-numeric:tabular-nums}
 .row[data-status="hidden"] .row-meta{color:var(--mist)}
 .pill{font:600 11px/1 var(--f-ui);border-radius:999px;padding:4px 7px;background:rgba(29,39,49,.1)}
-.row[data-status="live"] .pill{background:var(--ink);color:var(--paper)}
 .row[data-status="hidden"] .pill{background:var(--hover);color:var(--mist)}
 .row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .mini{border:1px solid rgba(29,39,49,.25);background:transparent;color:var(--ink);border-radius:8px;padding:8px 10px;font:600 13px/1 var(--f-ui);cursor:pointer;white-space:nowrap}
@@ -61,6 +65,12 @@ body{min-height:100vh;background:var(--sky-bg)}
 .row[data-status="hidden"] .mini{color:var(--paper);border-color:var(--line)}
 .row[data-status="hidden"] .mini:hover{background:var(--hover)}
 .mini:disabled{opacity:.4;cursor:default}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{border:1px solid var(--line);background:transparent;color:var(--mist);border-radius:999px;padding:7px 12px;font:500 13px/1 var(--f-ui);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--paper);color:var(--ink);border-color:transparent;font-weight:600}
+.pill.kind{background:rgba(29,39,49,.1);color:var(--ink)}
+.theme-smc .pill.kind{background:var(--samsung-blue);color:#fff}
+.row[data-status="hidden"] .pill.kind{background:var(--hover);color:var(--mist)}
 .empty{margin:0;padding:18px;text-align:center;color:var(--mist);font-size:14px;border:1px dashed var(--line);border-radius:10px}
 
 .link-box{display:flex;gap:8px;align-items:stretch}
@@ -116,7 +126,8 @@ body{min-height:100vh;background:var(--sky-bg)}
 
       <section class="panel">
         <h2>최근 메시지 <span class="n zero" id="n-recent">0</span></h2>
-        <p class="help">숨기기를 누르면 월 화면에서 바로 사라져요. 다시 띄우면 처음부터 다시 떠올라요.</p>
+        <div class="filters" id="filters" role="group" aria-label="메시지 종류로 보기" hidden></div>
+        <p class="help">숨기기를 누르면 월 화면에서 바로 사라져요. 다시 띄우기를 누르면 오른쪽에서 고른 시간만큼 다시 떠올라요.</p>
         <ul class="list" id="recent-list"></ul>
         <p class="empty" id="recent-empty">아직 메시지가 없어요</p>
       </section>
@@ -135,6 +146,17 @@ body{min-height:100vh;background:var(--sky-bg)}
           <div class="stat"><span>띄움</span><b id="s-live">0</b></div>
           <div class="stat"><span>숨김</span><b id="s-hidden">0</b></div>
         </div>
+      </section>
+
+      <section class="panel">
+        <h2>띄울 때 머무는 시간</h2>
+        <div class="seg seg4" role="group" aria-label="띄울 때 머무는 시간" id="stay-seg">
+          <button type="button" data-stay="default" aria-pressed="true" id="stay-default">기본</button>
+          <button type="button" data-stay="300" aria-pressed="false">5분</button>
+          <button type="button" data-stay="600" aria-pressed="false">10분</button>
+          <button type="button" data-stay="0" aria-pressed="false">고정</button>
+        </div>
+        <p class="help" id="stay-help"></p>
       </section>
 
       <section class="panel">
@@ -173,8 +195,9 @@ import {
   configured, app, db, SDK,
   collection, doc, query, orderBy, limit, onSnapshot, updateDoc, setDoc, getDocs, writeBatch, serverTimestamp
 } from "./firebase.js";
-import { applyText, participantUrl, drawQR, makeToast, timeText } from "./shared.js";
+import { applyText, applyTheme, participantUrl, drawQR, makeToast, timeText, lifetimeLabel, COL, CFG_DOC, KINDS, moderationFrom } from "./shared.js";
 
+applyTheme();
 applyText();
 const $ = (id) => document.getElementById(id);
 const toast = makeToast($("toast"));
@@ -204,7 +227,7 @@ $("qr-save").addEventListener("click", () => {
   c.toBlob((blob) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "메시지월-QR.png";
+    a.download = `${EVENT.title || "메시지월"}-QR.png`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   });
@@ -213,6 +236,47 @@ $("qr-save").addEventListener("click", () => {
 // ---------- 메시지 목록 ----------
 let rows = [];
 let moderation = false;
+
+// ---------- 머무는 시간 ----------
+const DEFAULT_STAY = Math.max(15, Number(EVENT.lifetimeSeconds) || 120);
+let stayChoice = "default";
+try { const v = localStorage.getItem("wall-stay"); if (["default", "300", "600", "0"].includes(v)) stayChoice = v; } catch {}
+function staySeconds() { return stayChoice === "default" ? DEFAULT_STAY : Number(stayChoice); }
+function stayText(sec) { return sec === 0 ? "고정" : sec % 60 === 0 ? `${sec / 60}분` : `${sec}초`; }
+function renderStay() {
+  $("stay-default").textContent = `기본 ${lifetimeLabel()}`;
+  $("stay-seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.stay === stayChoice)));
+  const sec = staySeconds();
+  $("stay-help").textContent = (sec === 0
+    ? "띄우기·다시 띄우기를 누르면 숨기기를 누를 때까지 화면에 고정돼요. 질문에 답하는 동안 띄워 두기 좋아요."
+    : `띄우기·다시 띄우기를 누르면 ${stayText(sec)} 동안 화면에 떠 있어요.`)
+    + ` 참여자가 바로 보낸 메시지는 항상 기본 ${lifetimeLabel()}이에요.`;
+}
+$("stay-seg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+  stayChoice = b.dataset.stay;
+  try { localStorage.setItem("wall-stay", stayChoice); } catch {}
+  renderStay();
+}));
+renderStay();
+
+async function showAgain(ref) {
+  const sec = staySeconds();
+  await updateDoc(ref, { status: "live", liveAt: serverTimestamp(), stay: sec });
+  toast(sec === 0 ? "화면에 고정했어요. 내릴 때는 숨기기를 누르세요" : `${stayText(sec)} 동안 화면에 띄웠어요`);
+}
+
+// 지금 화면에 떠 있는지 (대략)
+function liveState(m) {
+  const stay = typeof m.stay === "number" ? m.stay : DEFAULT_STAY;
+  if (stay === 0) return { cls: "pin", text: "화면에 고정" };
+  const t = m.liveAt && m.liveAt.toMillis ? m.liveAt.toMillis() : Date.now();
+  const left = t + stay * 1000 - Date.now();
+  if (left > 0) {
+    const s = Math.ceil(left / 1000);
+    return { cls: "on", text: `화면에 있음 · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} 남음` };
+  }
+  return { cls: "past", text: "지나감" };
+}
 
 function rowEl(m) {
   const li = document.createElement("li");
@@ -227,12 +291,25 @@ function rowEl(m) {
   meta.className = "row-meta";
   const pill = document.createElement("span");
   pill.className = "pill";
-  pill.textContent = m.status === "live" ? "화면에 띄움" : m.status === "hidden" ? "숨김" : "대기";
+  if (m.status === "live") {
+    const st = liveState(m);
+    pill.classList.add(st.cls);
+    pill.textContent = st.text;
+  } else {
+    pill.textContent = m.status === "hidden" ? "숨김" : "대기";
+  }
   const who = document.createElement("span");
   who.textContent = m.name || "익명";
   const when = document.createElement("span");
   when.textContent = timeText(m.createdAt);
-  meta.append(pill, who, when);
+  meta.append(pill);
+  if (m.kind) {
+    const k = document.createElement("span");
+    k.className = "pill kind";
+    k.textContent = m.kind;
+    meta.append(k);
+  }
+  meta.append(who, when);
   main.append(p, meta);
 
   const acts = document.createElement("div");
@@ -248,22 +325,44 @@ function rowEl(m) {
     });
     acts.append(b);
   };
-  const ref = doc(db, "messages", m.id);
+  const ref = doc(db, COL, m.id);
   if (m.status === "pending") {
-    btn("띄우기", "go", () => updateDoc(ref, { status: "live", liveAt: serverTimestamp() }));
+    btn("띄우기", "go", () => showAgain(ref));
     btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
   } else if (m.status === "live") {
+    btn("다시 띄우기", "", () => showAgain(ref));
     btn("숨기기", "", () => updateDoc(ref, { status: "hidden" }));
   } else {
-    btn("다시 띄우기", "", () => updateDoc(ref, { status: "live", liveAt: serverTimestamp() }));
+    btn("다시 띄우기", "", () => showAgain(ref));
   }
   li.append(main, acts);
   return li;
 }
 
+let filter = "";
+if (KINDS.length) {
+  const box = $("filters");
+  const make = (label, value) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.setAttribute("aria-pressed", String(value === filter));
+    b.addEventListener("click", () => {
+      filter = value;
+      box.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      render();
+    });
+    box.append(b);
+  };
+  make("전체", "");
+  KINDS.forEach((k) => make(k, k));
+  box.hidden = false;
+}
+
 function render() {
-  const pending = rows.filter((m) => m.status === "pending").reverse(); // 먼저 온 것부터
-  const recent = rows.filter((m) => m.status !== "pending");
+  const shown = filter ? rows.filter((m) => m.kind === filter) : rows;
+  const pending = shown.filter((m) => m.status === "pending").reverse(); // 먼저 온 것부터
+  const recent = shown.filter((m) => m.status !== "pending");
   $("pending-list").replaceChildren(...pending.map(rowEl));
   $("recent-list").replaceChildren(...recent.slice(0, 120).map(rowEl));
   $("pending-empty").hidden = pending.length > 0;
@@ -272,10 +371,17 @@ function render() {
   const setN = (id, n) => { $(id).textContent = n; $(id).classList.toggle("zero", n === 0); };
   setN("n-pending", pending.length);
   setN("n-recent", recent.length);
-  $("s-pending").textContent = pending.length;
+  $("s-pending").textContent = rows.filter((m) => m.status === "pending").length;
   $("s-live").textContent = rows.filter((m) => m.status === "live").length;
   $("s-hidden").textContent = rows.filter((m) => m.status === "hidden").length;
 }
+
+// 남은 시간 표시를 5초마다 새로 그려요 (버튼을 누르는 중에는 건너뛰어요)
+setInterval(() => {
+  if (!rows.some((m) => m.status === "live")) return;
+  if (document.activeElement && document.activeElement.classList.contains("mini")) return;
+  render();
+}, 5000);
 
 function renderMode() {
   $("mode-live").setAttribute("aria-pressed", String(!moderation));
@@ -288,7 +394,7 @@ function renderMode() {
 async function setMode(on) {
   if (on === moderation) return;
   try {
-    await setDoc(doc(db, "config", "wall"), { moderation: on });
+    await setDoc(doc(db, "config", CFG_DOC), { moderation: on });
     toast(on ? "이제 확인한 메시지만 월 화면에 떠요" : "이제 보내는 즉시 월 화면에 떠요");
   } catch (e) { explain(e); }
 }
@@ -298,20 +404,22 @@ $("mode-mod").addEventListener("click", () => setMode(true));
 // ---------- 내려받기 / 지우기 ----------
 $("export").addEventListener("click", async () => {
   try {
-    const snap = await getDocs(query(collection(db, "messages"), orderBy("createdAt", "asc")));
+    const snap = await getDocs(query(collection(db, COL), orderBy("createdAt", "asc")));
     const esc = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`;
     const label = { live: "띄움", hidden: "숨김", pending: "대기" };
-    const lines = [["보낸 시각", "이름", "메시지", "상태"].map(esc).join(",")];
+    const head = KINDS.length ? ["보낸 시각", "종류", "이름", "메시지", "상태"] : ["보낸 시각", "이름", "메시지", "상태"];
+    const lines = [head.map(esc).join(",")];
     snap.forEach((d) => {
       const m = d.data();
       const t = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleString("ko-KR", { hour12: false }) : "";
-      lines.push([t, m.name, m.text, label[m.status] || m.status].map(esc).join(","));
+      const cells = KINDS.length ? [t, m.kind, m.name, m.text, label[m.status] || m.status] : [t, m.name, m.text, label[m.status] || m.status];
+      lines.push(cells.map(esc).join(","));
     });
     const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     const day = new Date().toISOString().slice(0, 10);
-    a.download = `메시지월-${day}.csv`;
+    a.download = `${EVENT.title || "메시지월"}-${day}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     toast(`메시지 ${snap.size}개를 내려받았어요`);
@@ -331,7 +439,7 @@ wipe.addEventListener("click", async () => {
   wipe.disabled = true;
   wipe.textContent = "지우는 중…";
   try {
-    const snap = await getDocs(collection(db, "messages"));
+    const snap = await getDocs(collection(db, COL));
     const docs = snap.docs;
     for (let i = 0; i < docs.length; i += 400) {
       const b = writeBatch(db);
@@ -350,12 +458,12 @@ let unsubs = [];
 function stopListening() { unsubs.forEach((u) => u()); unsubs = []; }
 function startListening() {
   stopListening();
-  unsubs.push(onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(300)), (snap) => {
+  unsubs.push(onSnapshot(query(collection(db, COL), orderBy("createdAt", "desc"), limit(300)), (snap) => {
     rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     render();
   }, explain));
-  unsubs.push(onSnapshot(doc(db, "config", "wall"), (snap) => {
-    moderation = snap.exists() && snap.data().moderation === true;
+  unsubs.push(onSnapshot(doc(db, "config", CFG_DOC), (snap) => {
+    moderation = moderationFrom(snap);
     renderMode();
     render();
   }, explain));

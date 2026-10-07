@@ -49,6 +49,18 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
 .sw-row input:checked + label{box-shadow:inset 0 0 0 1px var(--field-line),0 0 0 2px var(--paper),0 0 0 4px var(--ink)}
 .sw-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:5px}
 
+.kinds{border:0;margin:0;padding:0;min-width:0}
+.kinds legend{padding:0;margin-bottom:10px;font:600 13px/1 var(--f-ui);color:var(--ink)}
+.kind-row{display:flex;flex-wrap:wrap;gap:8px}
+.kind-row input{position:absolute;opacity:0;width:1px;height:1px}
+.kind-row label{
+  padding:10px 14px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--field-line);background:var(--field);color:var(--ink);font:500 14px/1 var(--f-ui);
+}
+.kind-row input:checked + label{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.theme-smc .kind-row input:checked + label{background:var(--samsung-blue);border-color:var(--samsung-blue)}
+.kind-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:3px}
+
 .send{
   width:100%;padding:16px;border:0;border-radius:12px;cursor:pointer;
   background:var(--ink);color:var(--paper);font:600 16px/1 var(--f-ui);
@@ -84,6 +96,10 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
         </div>
         <textarea id="msg" rows="3" maxlength="80" aria-describedby="count" data-placeholder="placeholder" placeholder="한 해 동안 고마웠던 사람에게, 하고 싶은 말을 남겨주세요"></textarea>
       </div>
+      <fieldset class="kinds" id="kinds" hidden>
+        <legend>어떤 메시지인가요?</legend>
+        <div class="kind-row" id="kind-row"></div>
+      </fieldset>
       <fieldset class="swatches">
         <legend>쪽지 색</legend>
         <div class="sw-row">
@@ -102,7 +118,7 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
   <section class="sheet done" id="done" hidden>
     <p class="kicker">보냈어요</p>
     <h2 id="done-title">앞 화면을 봐 주세요</h2>
-    <figure class="note" id="done-note"><p></p><figcaption></figcaption></figure>
+    <figure class="note" id="done-note"><span class="kind-tag" hidden></span><p></p><figcaption></figcaption></figure>
     <p class="muted" id="done-sub"></p>
     <button class="send" type="button" id="again">한 번 더 보내기</button>
   </section>
@@ -112,7 +128,7 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
     <p class="muted" id="notready-msg">잠시 후 다시 QR을 찍어 주세요.</p>
   </section>
 
-  <p class="footnote">메시지는 행사 화면에 공개돼요. 서로 기분 좋은 말만 남겨 주세요.</p>
+  <p class="footnote" data-text="footnote">메시지는 행사 화면에 공개돼요. 서로 기분 좋은 말만 남겨 주세요.</p>
 </main>
 
 <script>
@@ -128,9 +144,10 @@ input::placeholder,textarea::placeholder{color:var(--ink-soft)}
 <script type="module">
 import { EVENT } from "./config.js";
 import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js";
-import { applyText, fill, COLORS, withTimeout } from "./shared.js";
+import { applyText, applyTheme, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js";
 
 window.__wallReady = true;
+applyTheme();
 applyText();
 document.title = EVENT.title || document.title;
 
@@ -141,6 +158,20 @@ msgIn.maxLength = MAX;
 
 $("compose").hidden = false;
 $("notready").hidden = true;
+// 메시지 종류 버튼
+if (KINDS.length) {
+  const row = $("kind-row");
+  KINDS.forEach((k, i) => {
+    const input = document.createElement("input");
+    input.type = "radio"; input.name = "kind"; input.id = "k-" + i; input.value = k;
+    if (i === 0) input.checked = true;
+    const label = document.createElement("label");
+    label.htmlFor = input.id; label.textContent = k;
+    row.append(input, label);
+  });
+  $("kinds").hidden = false;
+}
+
 if (!configured) {
   $("compose").hidden = true;
   $("notready").hidden = false;
@@ -161,10 +192,10 @@ function showError(text) {
 
 async function moderationOn() {
   try {
-    const snap = await withTimeout(getDoc(doc(db, "config", "wall")), 8000);
-    return snap.exists() && snap.data().moderation === true;
+    const snap = await withTimeout(getDoc(doc(db, "config", CFG_DOC)), 8000);
+    return moderationFrom(snap);
   } catch {
-    return false;
+    return EVENT.defaultModeration === true;
   }
 }
 
@@ -187,6 +218,8 @@ form.addEventListener("submit", async (e) => {
   const name = nameIn.value.trim().slice(0, 12) || "익명";
   const picked = form.querySelector('input[name="color"]:checked');
   const color = picked && COLORS.includes(picked.value) ? picked.value : "cream";
+  const kindEl = form.querySelector('input[name="kind"]:checked');
+  const kind = KINDS.length ? (kindEl ? kindEl.value : KINDS[0]) : "";
 
   sending = true;
   sendBtn.disabled = true;
@@ -197,10 +230,11 @@ form.addEventListener("submit", async (e) => {
   for (let attempt = 0; attempt < 2; attempt++) {
     const mod = await moderationOn();
     const data = { text, name, color, status: mod ? "pending" : "live", createdAt: serverTimestamp() };
+    if (kind) data.kind = kind;
     if (!mod) data.liveAt = serverTimestamp();
     try {
-      await withTimeout(addDoc(collection(db, "messages"), data), 12000);
-      showDone({ text, name, color, mod });
+      await withTimeout(addDoc(collection(db, COL), data), 12000);
+      showDone({ text, name, color, kind, mod });
       lastError = null;
       break;
     } catch (err) {
@@ -221,8 +255,11 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-function showDone({ text, name, color, mod }) {
+function showDone({ text, name, color, kind, mod }) {
   const note = $("done-note");
+  const tag = note.querySelector(".kind-tag");
+  tag.textContent = kind || "";
+  tag.hidden = !kind;
   note.querySelector("p").textContent = text;
   note.querySelector("figcaption").textContent = "— " + name;
   note.style.setProperty("--c", `var(--note-${color})`);

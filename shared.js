@@ -3,6 +3,22 @@ import { EVENT } from "./config.js";
 
 export const COLORS = ["cream", "apricot", "mint", "sky", "lilac"];
 
+// 행사마다 메시지를 따로 담는 곳 (config.js에서 정해요)
+export const COL = EVENT.collection || "messages";
+export const CFG_DOC = EVENT.configDoc || "wall";
+export const KINDS = Array.isArray(EVENT.kinds) ? EVENT.kinds.filter((k) => typeof k === "string" && k.trim()) : [];
+
+// '확인 후 띄우기'가 켜져 있는지 (설정 문서가 없으면 config.js 기본값)
+export function moderationFrom(snap) {
+  const v = snap && snap.exists() ? snap.data().moderation : undefined;
+  return v === undefined ? EVENT.defaultModeration === true : v === true;
+}
+
+// 화면 꾸밈(예: 병원 테마)을 body에 붙여요
+export function applyTheme() {
+  if (EVENT.theme) document.body.classList.add("theme-" + EVENT.theme);
+}
+
 export function lifetimeLabel() {
   const s = Number(EVENT.lifetimeSeconds) || 120;
   return s % 60 === 0 ? `${s / 60}분` : `${s}초`;

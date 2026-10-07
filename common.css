@@ -95,6 +95,32 @@ button{font:inherit}
 .setup p{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.6}
 .setup code{font:500 13px/1 ui-monospace,Menlo,Consolas,monospace;background:var(--field);border:1px solid var(--field-line);border-radius:5px;padding:2px 5px;color:var(--ink)}
 
+/* 메시지 종류 꼬리표 (응원 / 궁금한 점 …) */
+.kind-tag{
+  display:inline-block;margin-bottom:.45em;
+  font:600 12px/1 var(--f-ui);letter-spacing:.02em;
+  color:var(--ink);background:rgba(29,39,49,.1);border-radius:999px;padding:4px 8px;
+}
+
+/* ---------- 병원 테마: 상단 행사명을 삼성 블루 배지로 ---------- */
+@font-face{
+  font-family:"SMC Brand";
+  src:url("fonts/brand.woff2") format("woff2"),url("fonts/brand.ttf") format("truetype"),url("fonts/brand.otf") format("opentype");
+  font-weight:100 900;font-display:swap;
+}
+:root{
+  --samsung-blue:#1428a0;
+  --f-brand:"SMC Brand","SamsungOneKorean","SamsungOne Korean","Samsung One Korean","SamsungOneKorean-700","Samsung Gothic","SamsungGothic","삼성고딕",
+            "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+.theme-smc .eyebrow{
+  display:inline-block;justify-self:start;width:max-content;max-width:100%;
+  background:#ffffff;color:var(--samsung-blue);
+  font-family:var(--f-brand);font-weight:700;letter-spacing:.01em;
+  padding:.5em .8em;border-radius:6px;line-height:1.15;
+}
+.theme-smc .kind-tag{background:var(--samsung-blue);color:#ffffff}
+
 @media (prefers-reduced-motion:reduce){
   .toast{animation:none}
 }
