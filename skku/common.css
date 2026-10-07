@@ -1,0 +1,126 @@
+/* 세 화면 공통 스타일 — 밤하늘 무대 위 종이 쪽지 */
+:root{
+  --night:#0d1d29;
+  --night-deep:#07121a;
+  --glow:#f0b46a;
+  --paper:#f6efe2;
+  --ink:#1d2731;
+  --mist:#9db1bd;
+
+  --ink-soft:rgba(29,39,49,.64);
+  --line:rgba(157,177,189,.26);
+  --hover:rgba(157,177,189,.14);
+  --dock:rgba(7,18,26,.82);
+  --scrim:rgba(4,10,15,.7);
+  --shadow:rgba(0,0,0,.4);
+  --halo:rgba(240,180,106,.16);
+  --halo-strong:rgba(240,180,106,.8);
+  --sky-wash:rgba(84,132,163,.26);
+  --floor-wash:rgba(240,180,106,.13);
+  --tape:rgba(255,255,255,.55);
+  --field:#fffdf8;
+  --field-line:rgba(29,39,49,.2);
+  --error-ink:#a3402f;
+  --danger:#e8907f;
+  --ok:#93d3ad;
+
+  --note-cream:#f6efe2;
+  --note-apricot:#f6d8c2;
+  --note-mint:#d2e9dc;
+  --note-sky:#d3e2f1;
+  --note-lilac:#e2d9ef;
+
+  --f-display:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
+  --f-note:"Gaegu","Nanum Pen Script","Apple SD Gothic Neo",cursive;
+  --f-ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+
+  --sky-bg:
+    radial-gradient(120% 70% at 50% 118%,var(--floor-wash),transparent 62%),
+    radial-gradient(90% 60% at 12% -12%,var(--sky-wash),transparent 60%),
+    linear-gradient(180deg,var(--night) 0%,var(--night-deep) 100%);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--night-deep)}
+body{margin:0;background:var(--night-deep);color:var(--paper);font:400 15px/1.5 var(--f-ui);word-break:keep-all;overflow-wrap:break-word}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
+button{font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.eyebrow{font:600 12px/1 var(--f-ui);letter-spacing:.2em;color:var(--glow)}
+
+/* 종이 쪽지 */
+.note{
+  position:relative;margin:0;
+  background:var(--c,var(--note-cream));color:var(--ink);
+  padding:16px 18px 14px;border-radius:3px 3px 8px 8px;
+  transform:rotate(var(--rot,0deg));
+  box-shadow:0 14px 34px var(--shadow),0 0 46px var(--halo);
+}
+.note::before{
+  content:"";position:absolute;top:-8px;left:50%;width:38%;height:16px;
+  transform:translateX(-50%) rotate(-2deg);background:var(--tape);border-radius:2px;
+}
+.note p{margin:0;font:700 22px/1.28 var(--f-note);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-line}
+.note figcaption{margin-top:.6em;font:500 12px/1 var(--f-ui);color:var(--ink-soft)}
+
+/* 알림 토스트 */
+.toast{
+  position:fixed;z-index:20;left:50%;transform:translateX(-50%);
+  bottom:calc(env(safe-area-inset-bottom,0px) + 24px);
+  width:max-content;max-width:calc(100% - 32px);
+  padding:10px 16px;border-radius:10px;
+  background:var(--paper);color:var(--ink);font:500 14px/1.45 var(--f-ui);
+  box-shadow:0 10px 30px var(--shadow);animation:toastIn .25s ease-out;
+}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* 공통 버튼 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font:500 14px/1 var(--f-ui);color:var(--paper);background:transparent;text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:10px 14px;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--glow);color:var(--ink);border-color:transparent;font-weight:600}
+.btn.primary:hover{background:var(--paper)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* 설정 안내 카드 */
+.setup{
+  max-width:520px;background:var(--paper);color:var(--ink);color-scheme:light;
+  border-radius:16px;padding:24px;display:grid;gap:10px;box-shadow:0 20px 60px var(--shadow);
+}
+.setup h2{margin:0;font:700 22px/1.3 var(--f-display)}
+.setup p{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.6}
+.setup code{font:500 13px/1 ui-monospace,Menlo,Consolas,monospace;background:var(--field);border:1px solid var(--field-line);border-radius:5px;padding:2px 5px;color:var(--ink)}
+
+/* 메시지 종류 꼬리표 (응원 / 궁금한 점 …) */
+.kind-tag{
+  display:inline-block;margin-bottom:.45em;
+  font:600 12px/1 var(--f-ui);letter-spacing:.02em;
+  color:var(--ink);background:rgba(29,39,49,.1);border-radius:999px;padding:4px 8px;
+}
+
+/* ---------- 병원 테마: 상단 행사명을 삼성 블루 배지로 ---------- */
+@font-face{
+  font-family:"SMC Brand";
+  src:url("fonts/brand.woff2") format("woff2"),url("fonts/brand.ttf") format("truetype"),url("fonts/brand.otf") format("opentype");
+  font-weight:100 900;font-display:swap;
+}
+:root{
+  --samsung-blue:#1428a0;
+  --f-brand:"SMC Brand","SamsungOneKorean","SamsungOne Korean","Samsung One Korean","SamsungOneKorean-700","Samsung Gothic","SamsungGothic","삼성고딕",
+            "IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+.theme-smc .eyebrow{
+  display:inline-block;justify-self:start;width:max-content;max-width:100%;
+  background:#ffffff;color:var(--samsung-blue);
+  font-family:var(--f-brand);font-weight:700;letter-spacing:.01em;
+  padding:.5em .8em;border-radius:6px;line-height:1.15;
+}
+.theme-smc .kind-tag{background:var(--samsung-blue);color:#ffffff}
+
+@media (prefers-reduced-motion:reduce){
+  .toast{animation:none}
+}

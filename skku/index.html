@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1d29">
+<title>올해의 한마디</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+/* 참여 화면: 폰 한 장 크기. 위는 밤하늘 제목, 아래는 종이 한 장 */
+body{min-height:100vh;min-height:100dvh;background:var(--sky-bg)}
+.wrap{
+  max-width:440px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 34px) 16px calc(env(safe-area-inset-bottom,0px) + 36px);
+  display:grid;gap:22px;
+}
+.hero{display:grid;gap:10px;padding-inline:4px}
+.hero h1{margin:0;font:700 34px/1.15 var(--f-display);text-wrap:balance}
+.hero p{margin:0;color:var(--mist);font-size:15px;line-height:1.55}
+
+.sheet{
+  background:var(--paper);color:var(--ink);color-scheme:light;
+  border-radius:18px;padding:22px 18px 20px;
+  display:grid;gap:18px;box-shadow:0 20px 60px var(--shadow);
+}
+.sheet h2{margin:0;font:700 24px/1.25 var(--f-display);text-wrap:balance}
+.sheet .muted{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.6}
+
+form{display:grid;gap:18px}
+.field{display:grid;gap:8px}
+.field-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.field label,.swatches legend{font:600 13px/1 var(--f-ui);color:var(--ink)}
+.count{font:500 12px/1 var(--f-ui);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+input[type="text"],textarea{
+  width:100%;background:var(--field);color:var(--ink);
+  border:1px solid var(--field-line);border-radius:10px;padding:12px 14px;
+  font:400 16px/1.4 var(--f-ui);
+}
+textarea{font:700 22px/1.3 var(--f-note);resize:none}
+input::placeholder,textarea::placeholder{color:var(--ink-soft)}
+.swatches{border:0;margin:0;padding:0;min-width:0}
+.swatches legend{padding:0;margin-bottom:10px}
+.sw-row{display:flex;flex-wrap:wrap;gap:12px}
+.sw-row input{position:absolute;opacity:0;width:1px;height:1px}
+.sw-row label{width:36px;height:36px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 1px var(--field-line);cursor:pointer}
+.sw-row input:checked + label{box-shadow:inset 0 0 0 1px var(--field-line),0 0 0 2px var(--paper),0 0 0 4px var(--ink)}
+.sw-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:5px}
+
+.kinds{border:0;margin:0;padding:0;min-width:0}
+.kinds legend{padding:0;margin-bottom:10px;font:600 13px/1 var(--f-ui);color:var(--ink)}
+.kind-row{display:flex;flex-wrap:wrap;gap:8px}
+.kind-row input{position:absolute;opacity:0;width:1px;height:1px}
+.kind-row label{
+  padding:10px 14px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--field-line);background:var(--field);color:var(--ink);font:500 14px/1 var(--f-ui);
+}
+.kind-row input:checked + label{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.theme-smc .kind-row input:checked + label{background:var(--samsung-blue);border-color:var(--samsung-blue)}
+.kind-row input:focus-visible + label{outline:2px solid var(--glow);outline-offset:3px}
+
+.send{
+  width:100%;padding:16px;border:0;border-radius:12px;cursor:pointer;
+  background:var(--ink);color:var(--paper);font:600 16px/1 var(--f-ui);
+}
+.send:disabled{opacity:.38;cursor:default}
+.error{margin:-6px 0 0;color:var(--error-ink);font:500 14px/1.5 var(--f-ui)}
+
+.done{justify-items:center;text-align:center;padding-top:28px}
+.done .kicker{margin:0;font:600 13px/1 var(--f-ui);letter-spacing:.12em;color:var(--ink-soft)}
+.done .note{width:min(280px,100%);text-align:left;margin:10px 0 6px;box-shadow:0 12px 26px rgba(29,39,49,.18)}
+
+.footnote{margin:0;text-align:center;color:var(--mist);font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <span class="eyebrow" data-text="eyebrow">SKKU 정보통신대학원</span>
+    <h1 data-text="title">올해의 한마디</h1>
+    <p data-text="sendLead">보낸 메시지는 앞 화면에 2분 동안 떠 있어요.</p>
+  </header>
+
+  <section class="sheet" id="compose">
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="name">이름 (선택)</label>
+        <input id="name" type="text" maxlength="12" placeholder="비워두면 익명으로 올라가요" autocomplete="off">
+      </div>
+      <div class="field">
+        <div class="field-head">
+          <label for="msg">메시지</label>
+          <span class="count" id="count">0/80</span>
+        </div>
+        <textarea id="msg" rows="3" maxlength="80" aria-describedby="count" data-placeholder="placeholder" placeholder="한 해 동안 고마웠던 사람에게, 하고 싶은 말을 남겨주세요"></textarea>
+      </div>
+      <fieldset class="kinds" id="kinds" hidden>
+        <legend>어떤 메시지인가요?</legend>
+        <div class="kind-row" id="kind-row"></div>
+      </fieldset>
+      <fieldset class="swatches">
+        <legend>쪽지 색</legend>
+        <div class="sw-row">
+          <input type="radio" name="color" id="c-cream" value="cream" checked><label for="c-cream" style="--c:var(--note-cream)"><span class="sr">크림</span></label>
+          <input type="radio" name="color" id="c-apricot" value="apricot"><label for="c-apricot" style="--c:var(--note-apricot)"><span class="sr">살구</span></label>
+          <input type="radio" name="color" id="c-mint" value="mint"><label for="c-mint" style="--c:var(--note-mint)"><span class="sr">민트</span></label>
+          <input type="radio" name="color" id="c-sky" value="sky"><label for="c-sky" style="--c:var(--note-sky)"><span class="sr">하늘</span></label>
+          <input type="radio" name="color" id="c-lilac" value="lilac"><label for="c-lilac" style="--c:var(--note-lilac)"><span class="sr">라일락</span></label>
+        </div>
+      </fieldset>
+      <button class="send" type="submit" id="send" disabled>화면에 띄우기</button>
+      <p class="error" id="error" role="alert" hidden></p>
+    </form>
+  </section>
+
+  <section class="sheet done" id="done" hidden>
+    <p class="kicker">보냈어요</p>
+    <h2 id="done-title">앞 화면을 봐 주세요</h2>
+    <figure class="note" id="done-note"><span class="kind-tag" hidden></span><p></p><figcaption></figcaption></figure>
+    <p class="muted" id="done-sub"></p>
+    <button class="send" type="button" id="again">한 번 더 보내기</button>
+  </section>
+
+  <section class="sheet" id="notready" hidden>
+    <h2>아직 준비 중이에요</h2>
+    <p class="muted" id="notready-msg">잠시 후 다시 QR을 찍어 주세요.</p>
+  </section>
+
+  <p class="footnote" data-text="footnote">메시지는 행사 화면에 공개돼요. 서로 기분 좋은 말만 남겨 주세요.</p>
+</main>
+
+<script>
+  // 모듈을 못 불러오면(네트워크 문제) 안내를 띄워요
+  setTimeout(function () {
+    if (window.__wallReady) return;
+    document.getElementById("compose").hidden = true;
+    var nr = document.getElementById("notready");
+    nr.hidden = false;
+    document.getElementById("notready-msg").textContent = "연결이 불안정해요. 와이파이나 데이터를 확인하고 새로고침해 주세요.";
+  }, 10000);
+</script>
+<script type="module">
+import { EVENT } from "./config.js";
+import { configured, db, collection, addDoc, doc, getDoc, serverTimestamp } from "./firebase.js";
+import { applyText, applyTheme, fill, COLORS, COL, CFG_DOC, KINDS, moderationFrom, withTimeout } from "./shared.js";
+
+window.__wallReady = true;
+applyTheme();
+applyText();
+document.title = EVENT.title || document.title;
+
+const $ = (id) => document.getElementById(id);
+const form = $("form"), nameIn = $("name"), msgIn = $("msg"), sendBtn = $("send"), countEl = $("count"), errorEl = $("error");
+const MAX = Math.max(10, Math.min(200, Number(EVENT.maxLength) || 80));
+msgIn.maxLength = MAX;
+
+$("compose").hidden = false;
+$("notready").hidden = true;
+// 메시지 종류 버튼
+if (KINDS.length) {
+  const row = $("kind-row");
+  KINDS.forEach((k, i) => {
+    const input = document.createElement("input");
+    input.type = "radio"; input.name = "kind"; input.id = "k-" + i; input.value = k;
+    if (i === 0) input.checked = true;
+    const label = document.createElement("label");
+    label.htmlFor = input.id; label.textContent = k;
+    row.append(input, label);
+  });
+  $("kinds").hidden = false;
+}
+
+if (!configured) {
+  $("compose").hidden = true;
+  $("notready").hidden = false;
+  $("notready-msg").textContent = "운영진: config.js 파일에 Firebase 설정을 붙여넣으면 시작돼요.";
+}
+
+function sync() {
+  countEl.textContent = `${msgIn.value.length}/${MAX}`;
+  sendBtn.disabled = msgIn.value.trim().length === 0;
+}
+msgIn.addEventListener("input", () => { errorEl.hidden = true; sync(); });
+sync();
+
+function showError(text) {
+  errorEl.textContent = text;
+  errorEl.hidden = false;
+}
+
+async function moderationOn() {
+  try {
+    const snap = await withTimeout(getDoc(doc(db, "config", CFG_DOC)), 8000);
+    return moderationFrom(snap);
+  } catch {
+    return EVENT.defaultModeration === true;
+  }
+}
+
+function blocked(text) {
+  const words = Array.isArray(EVENT.blockedWords) ? EVENT.blockedWords : [];
+  const flat = text.replace(/\s+/g, "").toLowerCase();
+  return words.some((w) => w && flat.includes(String(w).replace(/\s+/g, "").toLowerCase()));
+}
+
+let sending = false;
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (sending || !configured) return;
+  const text = msgIn.value.trim().slice(0, MAX);
+  if (!text) return;
+  if (blocked(text) || blocked(nameIn.value)) {
+    showError("쓸 수 없는 단어가 들어 있어요. 다른 말로 바꿔 주세요.");
+    return;
+  }
+  const name = nameIn.value.trim().slice(0, 12) || "익명";
+  const picked = form.querySelector('input[name="color"]:checked');
+  const color = picked && COLORS.includes(picked.value) ? picked.value : "cream";
+  const kindEl = form.querySelector('input[name="kind"]:checked');
+  const kind = KINDS.length ? (kindEl ? kindEl.value : KINDS[0]) : "";
+
+  sending = true;
+  sendBtn.disabled = true;
+  sendBtn.textContent = "보내는 중…";
+  errorEl.hidden = true;
+
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const mod = await moderationOn();
+    const data = { text, name, color, status: mod ? "pending" : "live", createdAt: serverTimestamp() };
+    if (kind) data.kind = kind;
+    if (!mod) data.liveAt = serverTimestamp();
+    try {
+      await withTimeout(addDoc(collection(db, COL), data), 12000);
+      showDone({ text, name, color, kind, mod });
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      if (err && err.code === "permission-denied" && attempt === 0) continue; // 운영 모드가 막 바뀐 경우 한 번 더
+      break;
+    }
+  }
+
+  sending = false;
+  sendBtn.textContent = "화면에 띄우기";
+  sync();
+  if (lastError) {
+    console.error(lastError);
+    showError(lastError.code === "timeout"
+      ? "연결이 불안정해요. 와이파이나 데이터를 확인하고 다시 눌러 주세요."
+      : "보내지 못했어요. 잠시 후 다시 눌러 주세요.");
+  }
+});
+
+function showDone({ text, name, color, kind, mod }) {
+  const note = $("done-note");
+  const tag = note.querySelector(".kind-tag");
+  tag.textContent = kind || "";
+  tag.hidden = !kind;
+  note.querySelector("p").textContent = text;
+  note.querySelector("figcaption").textContent = "— " + name;
+  note.style.setProperty("--c", `var(--note-${color})`);
+  note.style.setProperty("--rot", "-1.5deg");
+  $("done-title").textContent = mod ? "운영진 확인 후 화면에 올라가요" : "앞 화면을 봐 주세요";
+  $("done-sub").textContent = mod ? "잠시만 기다려 주세요." : fill("메시지가 {시간} 동안 화면에 머물러요.");
+  $("compose").hidden = true;
+  $("done").hidden = false;
+  msgIn.value = "";
+  sync();
+  cooldown();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function cooldown() {
+  const btn = $("again");
+  let left = 5;
+  btn.disabled = true;
+  btn.textContent = `한 번 더 보내기 (${left})`;
+  const t = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      clearInterval(t);
+      btn.disabled = false;
+      btn.textContent = "한 번 더 보내기";
+    } else {
+      btn.textContent = `한 번 더 보내기 (${left})`;
+    }
+  }, 1000);
+}
+
+$("again").addEventListener("click", () => {
+  $("done").hidden = true;
+  $("compose").hidden = false;
+  msgIn.focus();
+});
+</script>
+</body>
+</html>
