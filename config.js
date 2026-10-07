@@ -6,12 +6,13 @@
 //    Firebase 콘솔 > 프로젝트 설정 > 내 앱 에서 보이는
 //    const firebaseConfig = { ... } 의 중괄호 안 내용을 통째로 바꿔 넣으세요.
 export const firebaseConfig = {
-  apiKey: "여기에-붙여넣기",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyA_jijEqm8c3BI24mp9rqXywVhFkMEgycs",
+  authDomain: "smc-261123.firebaseapp.com",
+  projectId: "smc-261123",
+  storageBucket: "smc-261123.firebasestorage.app",
+  messagingSenderId: "503117955325",
+  appId: "1:503117955325:web:d52ac9975cd24fd8f6be94",
+  measurementId: "G-HLDH87BL72"
 };
 
 // 2) 행사 문구와 동작
